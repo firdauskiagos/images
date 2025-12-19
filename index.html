@@ -230,7 +230,7 @@ let drawerOpen=false;
 let suppressSwipe=false;
 
 /* Zoom limit */
-const MAX_ZOOM = 5;
+const MAX_ZOOM = 20;
 
 /* ---------------------------
    Load captions
@@ -546,10 +546,11 @@ modalImg.addEventListener("wheel",e=>{
 
   /* Mouse wheel zoom (vertical only) */
   if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
-    scale += (e.deltaY<0?0.06:-0.06);
-    scale = Math.min(MAX_ZOOM, scale);
+    scale += (e.deltaY<0 ? 0.06 : -0.06);
 
     if(scale<1.02) scale=1;
+
+    if (scale > MAX_ZOOM) scale = MAX_ZOOM;
 
     applySoftBounds();
     applyTransform();
