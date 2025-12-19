@@ -524,16 +524,22 @@ document.addEventListener("mouseup",()=>{panning=false});
 ---------------------------- */
 modalImg.addEventListener("wheel",e=>{
   if(window.innerWidth<=700) return;
-
-  /* If trackpad horizontal scroll, ignore */
-  if(Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-
   e.preventDefault();
 
-  scale = Math.max(1, scale+(e.deltaY<0?0.1:-0.1));
+  const isTrackpad = Math.abs(e.deltaX) > 0 || Math.abs(e.deltaY) < 40;
 
-  applySoftBounds();
-  applyTransform();
+  if (scale > 1 && isTrackpad) {
+    offsetX -= e.deltaX;
+    offsetY -= e.deltaY;
+    applySoftBounds();
+    applyTransform();
+    return;
+  }
+  if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    scale = Math.max(1, scale + (e.deltaY < 0 ? 0.1 : -0.1));
+    applySoftBounds();
+    applyTransform();
+  }
 },{passive:false});
 
 /* ---------------------------
@@ -541,6 +547,18 @@ modalImg.addEventListener("wheel",e=>{
 ---------------------------- */
 function applyTransform(){
   modalImg.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+  updateDesktopExifVisibility();
+}
+
+function updateDesktopExifVisibility(){
+  if (window.innerWidth <= 700) return;
+  if (scale > 1) {
+    metaPanel.style.opacity = "0";
+    metaPanel.style.pointerEvents = "none";
+    } else {
+      metaPanel.style.opacity = "1";
+      metaPanel.style.pointerEvents = "auto";
+    }
 }
 
 function applySoftBounds(){
