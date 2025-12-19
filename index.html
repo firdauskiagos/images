@@ -20,9 +20,7 @@
     font: var(--font);
   }
 
-  /* -------------------------------------- */
-  /* HUGE MOBILE TITLE                      */
-  /* -------------------------------------- */
+  /* MOBILE TITLE */
   h1 {
     text-align: center;
     margin: 0 0 20px 0;
@@ -38,9 +36,7 @@
     }
   }
 
-  /* -------------------------------------- */
-  /* CATEGORIES                             */
-  /* -------------------------------------- */
+  /* CATEGORIES */
   #categories {
     display: flex;
     flex-wrap: wrap;
@@ -71,9 +67,7 @@
     }
   }
 
-  /* -------------------------------------- */
-  /* GALLERY                                */
-  /* -------------------------------------- */
+  /* GALLERY */
   .gallery {
     column-count: 3;
     column-gap: 16px;
@@ -109,9 +103,7 @@
   }
   .loaded { opacity: 1 !important; }
 
-  /* -------------------------------------- */
-  /* DESKTOP HOVER EXIF                      */
-  /* -------------------------------------- */
+  /* DESKTOP HOVER EXIF */
   #hoverInfo {
     position: fixed;
     padding: 14px 16px;
@@ -132,9 +124,7 @@
     #hoverInfo { display:none!important; }
   }
 
-  /* -------------------------------------- */
-  /* MODAL                                  */
-  /* -------------------------------------- */
+  /* MODAL */
   #modal {
     position: fixed;
     inset: 0;
@@ -159,9 +149,7 @@
     #modalContent{ flex-direction:column; }
   }
 
-  /* -------------------------------------- */
-  /* MOBILE IMAGE VIEW (PAN+ZOOM)           */
-  /* -------------------------------------- */
+  /* IMAGE (shared mobile+desktop transform engine) */
   #modalImg {
     flex:1;
     width:100%;
@@ -169,13 +157,10 @@
     object-fit:contain;
     background:black;
     touch-action:none;
-    transition:transform .25s ease-out;
     will-change: transform;
   }
 
-  /* -------------------------------------- */
-  /* DESKTOP EXIF PANEL                      */
-  /* -------------------------------------- */
+  /* DESKTOP EXIF PANEL */
   #metaPanel {
     width:32%;
     padding:20px;
@@ -214,9 +199,7 @@
     margin-bottom:4px;
   }
 
-  /* -------------------------------------- */
-  /* MOBILE EXIF DRAWER                     */
-  /* -------------------------------------- */
+  /* MOBILE EXIF DRAWER */
   #drawer {
     position: fixed;
     left:0; right:0;
@@ -280,77 +263,64 @@
 <script src="https://cdn.jsdelivr.net/npm/exifreader/dist/exif-reader.min.js"></script>
 
 <script>
-/* -------------------------------------------------
-   DOM ELEMENTS
-------------------------------------------------- */
-const body = document.body;
-const gallery=document.getElementById("gallery");
-const hoverInfo=document.getElementById("hoverInfo");
+/* DOM */
+const body=document.body;
 const modal=document.getElementById("modal");
 const modalImg=document.getElementById("modalImg");
 const metaPanel=document.getElementById("metaPanel");
+const exifContent=document.getElementById("exifContent");
 const captionText=document.getElementById("captionText");
 const drawer=document.getElementById("drawer");
 const drawerContent=document.getElementById("drawerContent");
+const hoverInfo=document.getElementById("hoverInfo");
 const categoriesList=document.getElementById("categories");
-const exifContent=document.getElementById("exifContent");
-const openFull=document.getElementById("openFull");
+const gallery=document.getElementById("gallery");
 
-/* -------------------------------------------------
-   STATE
-------------------------------------------------- */
+/* STATE */
 let imageList=[];
 let captions={};
 let currentIndex=0;
 
-/* Zoom/Pan */
-let zoom=1;
+/* Transform engine */
+let scale=1;
+let offsetX=0;
+let offsetY=0;
+
+/* Mobile pinch & pan */
 let isPinching=false;
-let panX=0;
-let panY=0;
-let startPanX=0;
-let startPanY=0;
+let pinchStartScale=1;
+let lastDist=0;
+let lastTouchX=0;
+let lastTouchY=0;
 
 /* Drawer */
-let drawerY=-260;
-let drawerVelocity=0;
-let drawerLastY=0;
-let drawerLastMoveTime=0;
-let drawerAnimating=false;
 let drawerOpen=false;
+let drawerY=-260;
 
-/* Swipe */
-let swipeStartY=0;
-let isSwipe=false;
+/* Desktop pan */
+let desktopPanning=false;
+let lastMouseX=0;
+let lastMouseY=0;
 
-/* -------------------------------------------------
-   LOAD captions.json
-------------------------------------------------- */
+/* ---------------------------
+   Load captions
+---------------------------- */
 async function loadCaptions(){
   try{
     const r=await fetch("captions.json");
     captions=await r.json();
-  }catch{
-    captions={};
-  }
+  }catch{ captions={}; }
 }
 
-/* -------------------------------------------------
-   OPTIMIZE IMAGES
-------------------------------------------------- */
-function optimize(url,w=900,q=75){
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${w}&q=${q}&output=webp`;
-}
-
-/* -------------------------------------------------
-   SCAN GITHUB
-------------------------------------------------- */
+/* ---------------------------
+   Load GitHub images
+---------------------------- */
 async function scanGitHub(path=""){
   const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}`;
   const r=await fetch(api);
   const files=await r.json();
 
-  for(let f of files){
+  for(const f of files){
     if(f.type==="file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)){
       imageList.push({
         file:f.download_url,
@@ -364,111 +334,69 @@ async function scanGitHub(path=""){
   }
 }
 
-/* -------------------------------------------------
-   INIT
-------------------------------------------------- */
-async function init(){
-  await loadCaptions();
-  await scanGitHub();
-  buildCategories();
-  buildGallery();
-}
-init();
+/* ---------------------------
+   Build gallery
+---------------------------- */
+function buildGallery(){
+  imageList.forEach((img,i)=>{
+    const item=document.createElement("div");
+    item.className="item";
 
-/* -------------------------------------------------
-   CATEGORIES
-------------------------------------------------- */
-function buildCategories(){
-  const cats=[...new Set(imageList.map(i=>i.category))];
-  cats.forEach(cat=>{
-    const li=document.createElement("li");
-    li.textContent=(cat==="all"?"All Images":cat);
-    li.onclick=()=>filterCategory(cat);
-    categoriesList.appendChild(li);
+    const im=document.createElement("img");
+    im.src=optimize(img.file);
+    im.onload=()=>im.classList.add("loaded");
+
+    /* Desktop hover EXIF only */
+    if(window.innerWidth>700){
+      item.onmouseenter=async()=>{
+        const ex=await loadExif(img.file);
+        hoverInfo.innerHTML=exifHtml(ex);
+        hoverInfo.style.opacity=1;
+      };
+      item.onmouseleave=()=>hoverInfo.style.opacity=0;
+    }
+
+    item.onclick=()=>openModal(i);
+    item.appendChild(im);
+    gallery.appendChild(item);
   });
 }
 
-function filterCategory(cat){
-  gallery.innerHTML="";
-  const imgs=(cat==="all")?imageList:imageList.filter(i=>i.category===cat);
-  imgs.forEach((img,i)=>buildItem(img,i));
+/* ---------------------------
+   Optimize images
+---------------------------- */
+function optimize(url,w=900,q=75){
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${w}&q=${q}&output=webp`;
 }
 
-/* -------------------------------------------------
-   BUILD GALLERY
-------------------------------------------------- */
-function buildGallery(){
-  imageList.forEach((img,i)=>buildItem(img,i));
-}
-
-function buildItem(imgData,idx){
-  const item=document.createElement("div");
-  item.className="item";
-
-  const img=document.createElement("img");
-  img.loading="lazy";
-  img.src=optimize(imgData.file,900,75);
-  img.onload=()=>img.classList.add("loaded");
-
-  item.appendChild(img);
-
-  /* Desktop hover EXIF */
-  if(window.innerWidth>700){
-    item.onmouseenter=async e=>{
-      const exif=await loadExif(imgData.file);
-      hoverInfo.innerHTML=exifHtml(exif);
-      hoverInfo.style.opacity=1;
-      positionHoverPanel(e.target);
-    };
-    item.onmouseleave=()=>hoverInfo.style.opacity=0;
-  }
-
-  item.onclick=()=>openModal(idx);
-  gallery.appendChild(item);
-}
-
-/* -------------------------------------------------
-   EXIF + CAPTION
-------------------------------------------------- */
+/* ---------------------------
+   EXIF + Caption
+---------------------------- */
 async function loadExif(file){
   const buf=await fetch(file).then(r=>r.arrayBuffer());
   return ExifReader.load(buf);
 }
 
-function exifHtml(exif){
-  const list=[
-    ["📷",exif.Model?.description],
-    ["🔍",exif.LensModel?.description],
-    ["🔆",exif.FNumber?.description],
-    ["⏱",exif.ExposureTime?.description],
-    ["🎚",exif.ISOSpeedRatings?.description],
-    ["📐",exif.FocalLength?.description]
-  ];
-  return list.filter(x=>x[1]).map(x=>`
-    <div class="exif-line">${x[0]} ${x[1]}</div>
-  `).join("");
+function exifHtml(ex){
+  return [
+    ["📷",ex.Model?.description],
+    ["🔍",ex.LensModel?.description],
+    ["🔆",ex.FNumber?.description],
+    ["⏱",ex.ExposureTime?.description],
+    ["🎚",ex.ISOSpeedRatings?.description],
+    ["📐",ex.FocalLength?.description],
+  ].filter(x=>x[1]).map(x=>`<div class="exif-line">${x[0]} ${x[1]}</div>`).join("");
 }
 
-function getCaption(file,name,exif){
-  if(captions[name])return captions[name];
-  if(exif["ImageDescription"]?.description)return exif["ImageDescription"].description;
+function getCaption(file,name,ex){
+  if(captions[name]) return captions[name];
+  if(ex["ImageDescription"]?.description) return ex["ImageDescription"].description;
   return name.replace(/\.[^/.]+$/,"").replace(/[_-]/g," ");
 }
 
-/* -------------------------------------------------
-   Desktop Hover Panel
-------------------------------------------------- */
-function positionHoverPanel(img){
-  const r=img.getBoundingClientRect();
-  const w=hoverInfo.offsetWidth+20;
-  hoverInfo.style.left=
-    (r.right+w>window.innerWidth?(r.left-w):(r.right+20))+"px";
-  hoverInfo.style.top=r.top+"px";
-}
-
-/* -------------------------------------------------
-   OPEN MODAL
-------------------------------------------------- */
+/* ---------------------------
+   Open modal
+---------------------------- */
 async function openModal(i){
   currentIndex=i;
   const {file,name}=imageList[i];
@@ -476,277 +404,214 @@ async function openModal(i){
   modal.style.display="flex";
   body.style.overflow="hidden";
 
-  modalImg.src=file;
-  zoom=1; panX=0; panY=0;
-  modalImg.style.transform="translate(0px,0px) scale(1)";
-  isPinching=false;
+  scale=1;
+  offsetX=0;
+  offsetY=0;
+  applyTransform();
 
-  const exif=await loadExif(file);
-  const cap=getCaption(file,name,exif);
+  const ex=await loadExif(file);
+  const cap=getCaption(file,name,ex);
+
+  modalImg.src=file;
 
   if(window.innerWidth>700){
-    exifContent.innerHTML=exifHtml(exif);
+    exifContent.innerHTML=exifHtml(ex);
     captionText.textContent=cap;
   } else {
-    drawerContent.innerHTML=
-      exifHtml(exif)+
-      `<div style="margin-top:12px;opacity:.75;">${cap}</div>`;
+    drawerContent.innerHTML=exifHtml(ex)+`<div style=margin-top:12px;opacity:.75>${cap}</div>`;
   }
 
-  openFull.onclick=()=>window.open(file,"_blank");
+  hoverInfo.style.opacity=0;
 }
 
-/* -------------------------------------------------
-   ESC KEY CLOSES MODAL (always)
-------------------------------------------------- */
-document.addEventListener("keydown",(e)=>{
-  if(e.key==="Escape"){
-    closeModal();
-  }
-});
-
-/* -------------------------------------------------
-   Desktop Arrow Keys Navigation
-------------------------------------------------- */
-document.addEventListener("keydown",(e)=>{
-  if(modal.style.display!=="flex")return;
-
-  if(e.key==="ArrowRight"){
-    if(currentIndex<imageList.length-1) openModal(currentIndex+1);
-  }
-  if(e.key==="ArrowLeft"){
-    if(currentIndex>0) openModal(currentIndex-1);
-  }
-});
-
-/* -------------------------------------------------
-   CLOSE MODAL
-------------------------------------------------- */
+/* ---------------------------
+   Close modal
+---------------------------- */
 function closeModal(){
   modal.style.display="none";
-  body.style.overflow="auto";
+  body.style.overflow="";
   closeDrawer();
 }
 
-/* Click outside closes modal */
 modal.addEventListener("click",e=>{
   if(e.target===modal) closeModal();
 });
 
-/* -------------------------------------------------
-   MOBILE PINCH + PAN + SNAPBACK
-------------------------------------------------- */
-let lastDist=0;
-let pinchStart=1;
-let lastTouchX=0;
-let lastTouchY=0;
+/* ESC closes modal ALWAYS */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape") closeModal();
+});
 
-modalImg.addEventListener("touchstart",(e)=>{
+/* Arrow navigation */
+document.addEventListener("keydown",e=>{
+  if(modal.style.display!=="flex") return;
+
+  if(scale!==1) return; // locked: only at rest
+
+  if(e.key==="ArrowRight")
+    if(currentIndex<imageList.length-1) openModal(currentIndex+1);
+
+  if(e.key==="ArrowLeft")
+    if(currentIndex>0) openModal(currentIndex-1);
+});
+
+/* ---------------------------
+   MOBILE: Pinch + Pan + Snapback
+---------------------------- */
+modalImg.addEventListener("touchstart",e=>{
   if(e.touches.length===2){
     isPinching=true;
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
     lastDist=Math.sqrt(dx*dx+dy*dy);
-    pinchStart=zoom;
+    pinchStartScale=scale;
   } else if(e.touches.length===1){
     lastTouchX=e.touches[0].clientX;
     lastTouchY=e.touches[0].clientY;
   }
 },{passive:true});
 
-modalImg.addEventListener("touchmove",(e)=>{
+modalImg.addEventListener("touchmove",e=>{
   if(e.touches.length===2 && isPinching){
     e.preventDefault();
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
     const dist=Math.sqrt(dx*dx+dy*dy);
 
-    const factor=dist/lastDist;
-    zoom=Math.min(2,Math.max(1,pinchStart*factor));
-
-    modalImg.style.transform=
-      `translate(${panX}px,${panY}px) scale(${zoom})`;
+    scale=Math.min(2,Math.max(1,pinchStartScale*(dist/lastDist)));
+    applyTransform();
   }
 
-  if(e.touches.length===1 && zoom>1){
+  if(e.touches.length===1 && scale>1){
     e.preventDefault();
     const x=e.touches[0].clientX;
     const y=e.touches[0].clientY;
-    panX+= (x-lastTouchX)*0.7;
-    panY+= (y-lastTouchY)*0.7;
-    lastTouchX=x; lastTouchY=y;
-
-    modalImg.style.transform=
-      `translate(${panX}px,${panY}px) scale(${zoom})`;
+    offsetX+=(x-lastTouchX)*0.8;
+    offsetY+=(y-lastTouchY)*0.8;
+    lastTouchX=x;
+    lastTouchY=y;
+    applyTransform();
   }
 },{passive:false});
 
-modalImg.addEventListener("touchend",(e)=>{
+modalImg.addEventListener("touchend",e=>{
   if(isPinching && e.touches.length<2){
     isPinching=false;
-
-    /* Snap-back */
-    zoom=1; panX=0; panY=0;
-    modalImg.style.transition="transform .25s ease-out";
-    modalImg.style.transform="translate(0,0) scale(1)";
-
-    setTimeout(()=>modalImg.style.transition="transform .25s ease-out",300);
+    snapBack();
   }
 });
 
-/* -------------------------------------------------
-   SWIPE UP/DOWN GESTURES
-------------------------------------------------- */
-modalImg.addEventListener("touchstart",(e)=>{
-  if(e.touches.length===1){
+/* Snap-back */
+function snapBack(){
+  scale=1;
+  offsetX=0;
+  offsetY=0;
+  modalImg.style.transition="transform .25s ease-out";
+  applyTransform();
+  setTimeout(()=>modalImg.style.transition="",300);
+}
+
+/* ---------------------------
+   MOBILE: Swipe Up/Down for Drawer
+---------------------------- */
+modalImg.addEventListener("touchstart",e=>{
+  if(scale===1 && e.touches.length===1){
     swipeStartY=e.touches[0].clientY;
-    isSwipe=true;
-  } else isSwipe=false;
+  }
 },{passive:true});
 
-modalImg.addEventListener("touchend",(e)=>{
-  if(isPinching || !isSwipe) return;
-  if(e.touches.length>0) return;
+modalImg.addEventListener("touchend",e=>{
+  if(scale!==1 || e.touches.length>0) return;
 
   const dy=e.changedTouches[0].clientY-swipeStartY;
 
-  /* UP = open drawer (only if zoom==1) */
-  if(dy < -60 && zoom===1){
-    if(!drawerOpen) openDrawer();
-    return;
-  }
-
-  /* DOWN */
-  if(dy > 60 && zoom===1){
+  if(dy < -60) openDrawer();
+  if(dy > 60){
     if(drawerOpen) closeDrawer();
     else closeModal();
   }
 });
 
-/* -------------------------------------------------
-   DRAWER PHYSICS
-------------------------------------------------- */
-let dragging=false;
-
-drawer.addEventListener("touchstart",(e)=>{
-  dragging=true;
-  drawerLastY=e.touches[0].clientY;
-  drawerLastMoveTime=Date.now();
-},{passive:true});
-
-drawer.addEventListener("touchmove",(e)=>{
-  if(!dragging)return;
-
-  e.preventDefault();
-
-  const y=e.touches[0].clientY;
-  const dy=y-drawerLastY;
-
-  const now=Date.now();
-  drawerVelocity=(dy/(now-drawerLastMoveTime))*20;
-  drawerLastMoveTime=now;
-  drawerLastY=y;
-
-  drawerY+=dy;
-  if(drawerY>60) drawerY=60;
-  if(drawerY<-320) drawerY=-320;
-
-  drawer.style.bottom=drawerY+"px";
-},{passive:false});
-
-drawer.addEventListener("touchend",()=>{
-  dragging=false;
-  animateDrawer();
-});
-
-function animateDrawer(){
-  if(drawerAnimating)return;
-  drawerAnimating=true;
-
-  const step=()=>{
-    drawerVelocity*=0.9;
-    drawerY+=drawerVelocity;
-
-    if(drawerVelocity>0 && drawerY<0){
-      drawerY=0;
-      drawerOpen=true;
-      drawerAnimating=false;
-      drawer.style.bottom="0px";
-      return;
-    }
-    if(drawerVelocity<0 && drawerY>-260){
-      drawerY=-260;
-      drawerOpen=false;
-      drawerAnimating=false;
-      drawer.style.bottom="-260px";
-      return;
-    }
-
-    drawer.style.bottom=drawerY+"px";
-
-    if(Math.abs(drawerVelocity)>0.3){
-      requestAnimationFrame(step);
-    } else {
-      if(drawerY>-130){
-        drawerOpen=true;
-        drawerY=0;
-      } else {
-        drawerOpen=false;
-        drawerY=-260;
-      }
-      drawer.style.bottom=drawerY+"px";
-      drawerAnimating=false;
-    }
-  };
-
-  requestAnimationFrame(step);
-}
-
+/* Drawer */
 function openDrawer(){
-  drawerOpen=true;
-  drawerY=0;
   drawer.style.bottom="0px";
+  drawerOpen=true;
 }
 function closeDrawer(){
-  drawerOpen=false;
-  drawerY=-260;
   drawer.style.bottom="-260px";
+  drawerOpen=false;
 }
 
-/* -------------------------------------------------
-   DESKTOP ZOOM / PAN
-------------------------------------------------- */
-let desktopPanStartX=0, desktopPanStartY=0;
+/* ---------------------------
+   DESKTOP: Cursor-centered Zoom
+---------------------------- */
+modalImg.addEventListener("wheel",e=>{
+  if(window.innerWidth<=700) return;
 
-modalImg.addEventListener("wheel",(e)=>{
-  if(window.innerWidth<=700)return;
   e.preventDefault();
-  zoom=Math.max(1, zoom+(e.deltaY<0?0.15:-0.15));
-  modalImg.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`;
+
+  const rect=modalImg.getBoundingClientRect();
+  const cx=e.clientX-rect.left;
+  const cy=e.clientY-rect.top;
+
+  const prevScale=scale;
+  scale+= (e.deltaY<0 ? 0.1 : -0.1);
+  scale=Math.min(3,Math.max(1,scale));
+
+  const scaleChange=scale/prevScale;
+
+  offsetX = (offsetX - cx) * scaleChange + cx;
+  offsetY = (offsetY - cy) * scaleChange + cy;
+
+  applyTransform();
+},{passive:false});
+
+/* ---------------------------
+   DESKTOP: Pan with mouse
+---------------------------- */
+modalImg.addEventListener("mousedown",e=>{
+  if(window.innerWidth<=700) return;
+
+  desktopPanning=true;
+  lastMouseX=e.clientX;
+  lastMouseY=e.clientY;
 });
 
-modalImg.addEventListener("mousedown",(e)=>{
-  if(window.innerWidth<=700)return;
-
-  desktopPanStartX=e.clientX;
-  desktopPanStartY=e.clientY;
-
-  function mv(ev){
-    panX+=(ev.clientX-desktopPanStartX)/zoom;
-    panY+=(ev.clientY-desktopPanStartY)/zoom;
-    desktopPanStartX=ev.clientX;
-    desktopPanStartY=ev.clientY;
-    modalImg.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`;
+document.addEventListener("mousemove",e=>{
+  if(desktopPanning){
+    offsetX += (e.clientX-lastMouseX);
+    offsetY += (e.clientY-lastMouseY);
+    lastMouseX=e.clientX;
+    lastMouseY=e.clientY;
+    applyTransform();
   }
-
-  function up(){
-    document.removeEventListener("mousemove",mv);
-    document.removeEventListener("mouseup",up);
-  }
-
-  document.addEventListener("mousemove",mv);
-  document.addEventListener("mouseup",up);
 });
+
+document.addEventListener("mouseup",()=>desktopPanning=false);
+
+/* ---------------------------
+   Apply transform
+---------------------------- */
+function applyTransform(){
+  modalImg.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+}
+
+/* ---------------------------
+   Init page
+---------------------------- */
+async function init(){
+  await loadCaptions();
+  await scanGitHub();
+  buildGallery();
+}
+init();
+
+/* ---------------------------
+   Optimize helper
+---------------------------- */
+function optimize(url){
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=900&q=75&output=webp`;
+}
 </script>
 
 </body>
