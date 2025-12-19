@@ -5,8 +5,12 @@
 <meta charset="UTF-8">
 <title>Photo Gallery</title>
 
-<!-- Styles -->
 <style>
+  /* THEME */
+  :root {
+    color-scheme: light dark;
+  }
+
   body {
     margin: 0;
     padding: 20px;
@@ -14,14 +18,32 @@
     transition: background 0.3s, color 0.3s;
   }
 
-  body.light {
-    background: #ffffff;
-    color: #222;
+  @media (prefers-color-scheme: dark) {
+    body {
+      background: #111;
+      color: #eee;
+    }
+    .item {
+      background: #222;
+    }
+    #modalContent {
+      background: #222;
+      color: #eee;
+    }
   }
 
-  body.dark {
-    background: #111;
-    color: #eee;
+  @media (prefers-color-scheme: light) {
+    body {
+      background: #fff;
+      color: #222;
+    }
+    .item {
+      background: #fafafa;
+    }
+    #modalContent {
+      background: #fff;
+      color: #222;
+    }
   }
 
   h1 {
@@ -29,22 +51,7 @@
     margin-bottom: 30px;
   }
 
-  #toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 6px;
-    background: #333;
-    color: white;
-  }
-
-  body.light #toggle {
-    background: #ddd;
-    color: #222;
-  }
-
+  /* GALLERY GRID */
   .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -56,11 +63,11 @@
     cursor: pointer;
     border-radius: 10px;
     overflow: hidden;
-    background: #fafafa;
+    transition: transform 0.2s;
   }
 
-  body.dark .item {
-    background: #222;
+  .item:hover {
+    transform: scale(1.02);
   }
 
   .item img {
@@ -69,20 +76,28 @@
     display: block;
   }
 
-  .hover-info {
-    position: absolute;
-    bottom: 0;
-    background: rgba(0,0,0,0.65);
-    color: white;
-    width: 100%;
-    padding: 8px;
+  /* RIGHT-SIDE HOVER INFO PANEL */
+  #hoverInfo {
+    position: fixed;
+    top: 100px;
+    right: 40px;
+    width: 260px;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.05);
+    backdrop-filter: blur(4px);
     font-size: 14px;
-    opacity: 0;
-    transition: 0.2s;
+    line-height: 1.5;
   }
 
-  .item:hover .hover-info {
-    opacity: 1;
+  @media (prefers-color-scheme: dark) {
+    #hoverInfo {
+      background: rgba(255,255,255,0.05);
+    }
+  }
+
+  #hoverInfo h2 {
+    margin-top: 0;
   }
 
   /* FULLSCREEN MODAL */
@@ -99,17 +114,11 @@
   }
 
   #modalContent {
-    background: #fff;
-    width: 90%;
+    width: 85%;
     height: 80%;
     display: flex;
     border-radius: 10px;
     overflow: hidden;
-  }
-
-  body.dark #modalContent {
-    background: #222;
-    color: #eee;
   }
 
   #modal img {
@@ -124,36 +133,28 @@
     overflow-y: auto;
     font-size: 15px;
   }
-
-  #closeBtn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    cursor: pointer;
-    font-size: 20px;
-    color: white;
-  }
 </style>
 </head>
 
-<body class="light">
+<body>
 
 <h1>My Photo Gallery</h1>
-<div id="toggle">Dark Mode</div>
 
-<!-- Gallery Container -->
+<div id="hoverInfo">
+  <h2>Hover on an image</h2>
+  <p>Camera, lens, and EXIF info will appear here.</p>
+</div>
+
 <div class="gallery" id="gallery"></div>
 
-<!-- Modal -->
+<!-- MODAL -->
 <div id="modal">
-  <div id="closeBtn">✕ Close</div>
   <div id="modalContent">
     <img id="modalImg" src="" />
     <div id="metaPanel"></div>
   </div>
 </div>
 
-<!-- EXIF Reader -->
 <script src="https://cdn.jsdelivr.net/npm/exifreader/dist/exif-reader.min.js"></script>
 
 <script>
@@ -161,14 +162,8 @@ const gallery = document.getElementById('gallery');
 const modal = document.getElementById('modal');
 const modalImg = document.getElementById('modalImg');
 const metaPanel = document.getElementById('metaPanel');
+const hoverInfo = document.getElementById('hoverInfo');
 
-// DARK MODE TOGGLE
-document.getElementById('toggle').onclick = () => {
-  document.body.classList.toggle('dark');
-  document.body.classList.toggle('light');
-};
-
-// LOAD JSON
 async function loadImages() {
   const res = await fetch('data.json');
   const images = await res.json();
@@ -177,56 +172,81 @@ async function loadImages() {
     const file = imgObj.file;
 
     const item = document.createElement('div');
-    item.className = "item";
+    item.className = 'item';
 
     const imgTag = document.createElement('img');
     imgTag.src = file;
 
-    const hover = document.createElement('div');
-    hover.className = "hover-info";
-    hover.innerText = file;
-
     item.appendChild(imgTag);
-    item.appendChild(hover);
 
-    item.onclick = () => openModal(file);
+    // Hover → show info in right panel
+    item.addEventListener('mouseenter', () => showHoverInfo(file));
+
+    // Click → open fullscreen modal
+    item.addEventListener('click', () => openModal(file));
 
     gallery.appendChild(item);
   });
 }
 
-// OPEN MODAL WITH EXIF
-async function openModal(file) {
-  modal.style.display = "flex";
-  modalImg.src = file;
-
-  // Load EXIF
+// LOAD EXIF FOR HOVER PANEL
+async function showHoverInfo(file) {
   const buffer = await fetch(file).then(r => r.arrayBuffer());
   const exif = ExifReader.load(buffer);
 
   const camera = exif['Model']?.description || "Unknown";
-  const lens = exif['LensModel']?.description || exif['Lens']?.description || "Unknown";
+  const lens = exif['LensModel']?.description || "Unknown";
+  const aperture = exif['FNumber']?.description || "Unknown";
+  const shutter = exif['ExposureTime']?.description || "Unknown";
+  const iso = exif['ISOSpeedRatings']?.description || "Unknown";
+  const focal = exif['FocalLength']?.description || "Unknown";
+
+  hoverInfo.innerHTML = `
+    <h2>Image Info</h2>
+    <p><b>File:</b> ${file}</p>
+    <p><b>Camera:</b> ${camera}</p>
+    <p><b>Lens:</b> ${lens}</p>
+    <p><b>Aperture:</b> ${aperture}</p>
+    <p><b>Shutter:</b> ${shutter}</p>
+    <p><b>ISO:</b> ${iso}</p>
+    <p><b>Focal Length:</b> ${focal}</p>
+  `;
+}
+
+// OPEN MODAL
+async function openModal(file) {
+  modal.style.display = "flex";
+  modalImg.src = file;
+
+  // Load EXIF for modal
+  const buffer = await fetch(file).then(r => r.arrayBuffer());
+  const exif = ExifReader.load(buffer);
+
+  const camera = exif['Model']?.description || "Unknown";
+  const lens = exif['LensModel']?.description || "Unknown";
   const aperture = exif['FNumber']?.description || "Unknown";
   const shutter = exif['ExposureTime']?.description || "Unknown";
   const iso = exif['ISOSpeedRatings']?.description || "Unknown";
   const focal = exif['FocalLength']?.description || "Unknown";
 
   metaPanel.innerHTML = `
-    <h2>Image Info</h2>
-    <p><strong>File:</strong> ${file}</p>
-    <p><strong>Camera:</strong> ${camera}</p>
-    <p><strong>Lens:</strong> ${lens}</p>
-    <p><strong>Aperture:</strong> ${aperture}</p>
-    <p><strong>Shutter:</strong> ${shutter}</p>
-    <p><strong>ISO:</strong> ${iso}</p>
-    <p><strong>Focal Length:</strong> ${focal}</p>
+    <h2>Image Details</h2>
+    <p><b>File:</b> ${file}</p>
+    <p><b>Camera:</b> ${camera}</p>
+    <p><b>Lens:</b> ${lens}</p>
+    <p><b>Aperture:</b> ${aperture}</p>
+    <p><b>Shutter:</b> ${shutter}</p>
+    <p><b>ISO:</b> ${iso}</p>
+    <p><b>Focal Length:</b> ${focal}</p>
   `;
 }
 
-// CLOSE MODAL
-document.getElementById('closeBtn').onclick = () => {
-  modal.style.display = "none";
-};
+// CLICK OUTSIDE IMAGE → CLOSE MODAL
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
 
 loadImages();
 </script>
