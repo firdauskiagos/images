@@ -8,9 +8,11 @@
 <style>
   :root {
     color-scheme: light dark;
-    --font: 16px/1.5 "Inter", "Helvetica Neue", Arial, sans-serif;
-    --panel-bg-light: rgba(0,0,0,0.15);
-    --panel-bg-dark: rgba(255,255,255,0.18);
+    --font: 16px/1.5 "Inter", Arial, sans-serif;
+    --panel-bg-light: rgba(255,255,255,0.92);
+    --panel-bg-dark: rgba(0,0,0,0.92);
+    --drawer-bg-light: rgba(255,255,255,0.88);
+    --drawer-bg-dark: rgba(0,0,0,0.88);
     --accent: #00aaff;
   }
 
@@ -18,28 +20,25 @@
     margin: 0;
     padding: 20px;
     font: var(--font);
-    overflow-x: hidden;
     transition: background .3s, color .3s;
-    display: block;
   }
 
   h1 {
     font-weight: 500;
-    letter-spacing: -0.3px;
-    margin-top: 0;
     text-align: center;
-    margin-bottom: 10px;
+    margin: 0 0 12px 0;
     font-size: 32px;
   }
 
-  /* Categories under title */
+  /* Categories */
   #categories {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 16px;
+    gap: 14px;
     list-style: none;
     padding: 0;
-    margin: 10px 0 30px 0;
+    margin-bottom: 25px;
     font-size: 16px;
   }
 
@@ -47,26 +46,29 @@
     cursor: pointer;
     opacity: 0.75;
     transition: 0.2s;
+    padding: 6px 12px;
+    border-radius: 6px;
   }
-
   #categories li:hover {
     opacity: 1;
     font-weight: 600;
+    background: rgba(0,0,0,0.1);
+  }
+  @media (prefers-color-scheme: dark) {
+    #categories li:hover { background: rgba(255,255,255,0.1); }
   }
 
-  /* Masonry layout */
+  /* Masonry gallery */
   .gallery {
     column-count: 3;
-    column-gap: 20px;
-    width: 100%;
+    column-gap: 16px;
   }
-
   @media (max-width: 900px) { .gallery { column-count: 2; } }
   @media (max-width: 600px) { .gallery { column-count: 1; } }
 
   .item {
     break-inside: avoid;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     cursor: zoom-in;
     border-radius: 12px;
     overflow: hidden;
@@ -74,50 +76,37 @@
     transform: translateY(20px);
     animation: fadeUp .6s forwards ease;
   }
-
-  @keyframes fadeUp {
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
   .item img {
     width: 100%;
     display: block;
-    transition: opacity .4s;
     opacity: 0;
-    border-radius: 12px;
+    transition: opacity .4s;
   }
+  .item img.loaded { opacity: 1; }
 
-  .item img.loaded {
-    opacity: 1;
-  }
-
-  /* Hover EXIF panel — now much more opaque */
+  /* Hover EXIF panel (desktop only) */
   #hoverInfo {
     position: fixed;
-    width: 260px;
-    min-height: 80px;
-    padding: 18px;
+    padding: 14px 16px;
+    min-width: 240px;
     border-radius: 10px;
     opacity: 0;
     white-space: pre-line;
     transition: opacity .25s ease;
     pointer-events: none;
     font-size: 15px;
-    z-index: 999999;
+    z-index: 99999;
   }
-
-  @media (prefers-color-scheme: light) { 
-    #hoverInfo { background: var(--panel-bg-light); color: #111; } 
+  @media (prefers-color-scheme: light) {
+    #hoverInfo { background: var(--panel-bg-light); color:#111; }
   }
-  @media (prefers-color-scheme: dark)  { 
-    #hoverInfo { background: var(--panel-bg-dark); color: #fff; }  
+  @media (prefers-color-scheme: dark) {
+    #hoverInfo { background: var(--panel-bg-dark); color:#fff; }
   }
-
-  .exif-line {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 3px;
+  @media (max-width: 700px) {
+    #hoverInfo { display: none !important; }
   }
 
   /* Modal */
@@ -125,55 +114,100 @@
     position: fixed;
     inset: 0;
     display: none;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.88);
     align-items: center;
     justify-content: center;
     overflow: hidden;
     z-index: 9999;
+    backdrop-filter: blur(4px);
   }
 
   #modalContent {
     position: relative;
-    width: 85%;
-    height: 85%;
+    width: 95%;
+    height: 90%;
     display: flex;
-    border: 2px solid rgba(255,255,255,0.35);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
   }
 
-  @media (prefers-color-scheme: light) {
-    #modalContent { border-color: rgba(0,0,0,0.25); }
+  @media (max-width:650px) {
+    #modalContent { flex-direction: column; }
   }
 
   #modalImg {
-    width: 70%;
+    flex: 1;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     background: #000;
-    cursor: grab;
-    transition: transform .2s ease-out;
     touch-action: none;
+    transition: transform .18s ease-out;
   }
 
+  /* Desktop EXIF panel */
   #metaPanel {
-    width: 30%;
+    width: 32%;
     padding: 20px;
     overflow-y: auto;
     white-space: pre-line;
     font-size: 15px;
+    background: rgba(0,0,0,0.65);
+    color: white;
+  }
+  @media (max-width: 700px) {
+    #metaPanel { display: none !important; }
+  }
+
+  /* Mobile EXIF Drawer */
+  #drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -260px;
+    height: 260px;
+    border-radius: 18px 18px 0 0;
+    padding: 16px 20px;
+    z-index: 999999;
+    transition: bottom .35s ease;
+    backdrop-filter: blur(10px);
+    display: none;
+  }
+  @media (max-width:700px) {
+    #drawer { display: block; }
+  }
+  @media (prefers-color-scheme: light) {
+    #drawer { background: var(--drawer-bg-light); color:#111; }
+  }
+  @media (prefers-color-scheme: dark) {
+    #drawer { background: var(--drawer-bg-dark); color:#fff; }
+  }
+
+  #drawerHandle {
+    width: 48px;
+    height: 5px;
+    background: rgba(255,255,255,0.6);
+    margin: 0 auto 10px auto;
+    border-radius: 3px;
   }
 
   #zoomLevel {
     position: fixed;
-    bottom: 30px;
-    left: 30px;
-    background: rgba(0,0,0,0.45);
+    bottom: 25px;
+    left: 25px;
+    background: rgba(0,0,0,0.5);
     color: #fff;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     font-size: 14px;
     display: none;
+  }
+
+  .exif-line {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+    align-items:center;
   }
 </style>
 </head>
@@ -189,6 +223,7 @@
 <div id="modal">
   <div id="modalContent">
     <img id="modalImg" src="">
+    <!-- Desktop EXIF Panel -->
     <div id="metaPanel">
       <button id="openFull" style="
         margin-bottom: 15px;
@@ -202,9 +237,15 @@
       ">Open Full Resolution</button>
 
       <div id="exifContent"></div>
-      <div id="captionText" style="margin-top: 15px; opacity: .85;"></div>
+      <div id="captionText" style="margin-top: 15px; opacity:.9;"></div>
     </div>
   </div>
+</div>
+
+<!-- Mobile EXIF Drawer -->
+<div id="drawer">
+  <div id="drawerHandle"></div>
+  <div id="drawerContent"></div>
 </div>
 
 <div id="zoomLevel"></div>
@@ -222,6 +263,9 @@ const hoverInfo = document.getElementById("hoverInfo");
 const modal = document.getElementById("modal");
 const modalImg = document.getElementById("modalImg");
 const metaPanel = document.getElementById("metaPanel");
+const drawer = document.getElementById("drawer");
+const drawerContent = document.getElementById("drawerContent");
+const drawerHandle = document.getElementById("drawerHandle");
 const zoomLevelDisplay = document.getElementById("zoomLevel");
 const categoriesList = document.getElementById("categories");
 
@@ -232,17 +276,37 @@ let zoom = 1;
 let panX = 0;
 let panY = 0;
 
-/* AUTO-DETECT IMAGES & CATEGORIES */
-async function scanGitHub(path = "") {
+/* Drawer physics */
+let drawerY = -260;
+let drawerVelocity = 0;
+let drawerLastMoveTime = 0;
+let drawerLastY = 0;
+let drawerAnimating = false;
+let drawerOpen = false;
+const drawerHeight = 260;
+const drawerClosedY = -drawerHeight;
+const drawerOpenY = 0;
+
+/* Touch/pinch */
+let lastTouchDistance = 0;
+let doubleTapTime = 0;
+
+/* VERGEL OPTIMIZER */
+function optimize(url, width=1200, quality=75) {
+  return `/_next/image?url=${encodeURIComponent(url)}&w=${width}&q=${quality}`;
+}
+
+/* AUTO DETECT IMAGES */
+async function scanGitHub(path="") {
   const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
   const res = await fetch(url);
   const files = await res.json();
 
   for (let f of files) {
     if (f.type === "file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)) {
-      imageList.push({ 
+      imageList.push({
         file: f.download_url,
-        category: path || "root"
+        category: path || "all"
       });
     }
     if (f.type === "dir") {
@@ -257,31 +321,26 @@ async function init() {
   buildGallery();
 }
 
+/* CATEGORIES */
 function buildCategories() {
   const cats = [...new Set(imageList.map(i => i.category))];
-
   cats.forEach(cat => {
     const li = document.createElement("li");
-    li.textContent = cat === "root" ? "All Images" : cat;
+    li.textContent = cat === "all" ? "All Images" : cat;
     li.onclick = () => filterCategory(cat);
     categoriesList.appendChild(li);
   });
 }
 
-/* FILTERING */
 function filterCategory(cat) {
   gallery.innerHTML = "";
-  
-  const filtered = cat === "root"
-    ? imageList
-    : imageList.filter(i => i.category === cat);
-
-  filtered.forEach((imgData, idx) => buildItem(imgData, idx));
+  const filtered = cat === "all" ? imageList : imageList.filter(i => i.category === cat);
+  filtered.forEach((img, idx) => buildItem(img, idx));
 }
 
-/* BUILD GALLERY */
+/* GALLERY */
 function buildGallery() {
-  imageList.forEach((imgData, idx) => buildItem(imgData, idx));
+  imageList.forEach((img, idx) => buildItem(img, idx));
 }
 
 function buildItem(imgData, idx) {
@@ -290,53 +349,35 @@ function buildItem(imgData, idx) {
 
   const img = document.createElement("img");
   img.loading = "lazy";
-  img.src = imgData.file;
+
+  /* Optimized thumbnail */
+  img.src = optimize(imgData.file, 900, 70);
+  img.dataset.full = imgData.file;
 
   img.onload = () => img.classList.add("loaded");
-
   item.appendChild(img);
 
-  /* Hover EXIF */
-  item.onmouseenter = (e) => {
-    showHoverInfo(imgData.file);
-    positionHoverPanel(e.target);
-  };
-  item.onmouseleave = () => hoverInfo.style.opacity = 0;
+  /* Desktop hover EXIF */
+  if (window.innerWidth > 700) {
+    item.onmouseenter = (e) => {
+      showHoverInfo(imgData.file);
+      positionHoverPanel(e.target);
+    };
+    item.onmouseleave = () => hoverInfo.style.opacity = 0;
+  }
 
-  /* Click → modal */
   item.onclick = () => openModal(idx);
-
   gallery.appendChild(item);
 }
 
-/* POSITION HOVER INFO PANEL LEFT/RIGHT */
-function positionHoverPanel(imgEl) {
-  const rect = imgEl.getBoundingClientRect();
-  const panelW = hoverInfo.offsetWidth + 20;
-
-  if (rect.right + panelW > window.innerWidth) {
-    hoverInfo.style.left = (rect.left - panelW) + "px";
-  } else {
-    hoverInfo.style.left = (rect.right + 20) + "px";
-  }
-
-  hoverInfo.style.top = rect.top + "px";
-}
-
-/* EXIF LOADING */
-async function showHoverInfo(file) {
-  const exif = await loadExif(file);
-  hoverInfo.innerHTML = exifToHtml(exif);
-  hoverInfo.style.opacity = 1;
-}
-
+/* EXIF */
 async function loadExif(file) {
-  const buf = await fetch(file).then(r => r.arrayBuffer());
+  const buf = await fetch(file).then(r=>r.arrayBuffer());
   return ExifReader.load(buf);
 }
 
-function exifToHtml(exif) {
-  const i = [
+function exifHtml(exif) {
+  const items = [
     ["📷", exif.Model?.description],
     ["🔍", exif.LensModel?.description],
     ["🔆", exif.FNumber?.description],
@@ -344,21 +385,37 @@ function exifToHtml(exif) {
     ["🎚", exif.ISOSpeedRatings?.description],
     ["📐", exif.FocalLength?.description]
   ];
-
-  return i.map(x =>
-    x[1] ? `<div class="exif-line">${x[0]} <span>${x[1]}</span></div>` : ""
-  ).join("");
+  return items.filter(x=>x[1]).map(x=>`<div class="exif-line">${x[0]} ${x[1]}</div>`).join("");
 }
 
-/* CAPTION EXTRACTION */
-function extractCaption(file, exif) {
-  const desc = exif["ImageDescription"]?.description;
-  if (desc && desc.trim().length > 0) return desc.trim();
+function captionFrom(file, exif) {
+  const d = exif["ImageDescription"]?.description;
+  if (d) return d.trim();
 
-  let name = file.split("/").pop().replace(/\.[^/.]+$/, "");
-  name = name.replace(/[-_]/g, " ");
-  name = name.replace(/\b\w/g, c => c.toUpperCase());
-  return name;
+  let n = file.split("/").pop().replace(/\.[^/.]+$/, "");
+  n = n.replace(/[-_]/g, " ");
+  return n.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/* Hover panel desktop */
+async function showHoverInfo(file) {
+  if (window.innerWidth <= 700) return;
+  const exif = await loadExif(file);
+  hoverInfo.innerHTML = exifHtml(exif);
+  hoverInfo.style.opacity = 1;
+}
+
+function positionHoverPanel(imgEl) {
+  if (window.innerWidth <= 700) return;
+  const rect = imgEl.getBoundingClientRect();
+  const w = hoverInfo.offsetWidth + 20;
+
+  if (rect.right + w > window.innerWidth)
+    hoverInfo.style.left = (rect.left - w) + "px";
+  else
+    hoverInfo.style.left = (rect.right + 20) + "px";
+
+  hoverInfo.style.top = rect.top + "px";
 }
 
 /* MODAL */
@@ -368,105 +425,210 @@ async function openModal(i) {
 
   modal.style.display = "flex";
   modalImg.style.opacity = 0;
-  modalImg.src = file;
+
+  modalImg.src = file; /* Full resolution */
 
   const exif = await loadExif(file);
-  const caption = extractCaption(file, exif);
 
-  document.getElementById("exifContent").innerHTML = exifToHtml(exif);
-  document.getElementById("captionText").innerText = caption;
+  /* Desktop EXIF */
+  if (window.innerWidth > 700) {
+    document.getElementById("exifContent").innerHTML = exifHtml(exif);
+    document.getElementById("captionText").innerText = captionFrom(file, exif);
+  }
 
-  document.getElementById("openFull").onclick = () => {
-    window.open(file, "_blank");
-  };
+  /* Mobile drawer */
+  if (window.innerWidth <= 700) {
+    drawerContent.innerHTML =
+      exifHtml(exif) +
+      `<div style="margin-top:12px; opacity:.75;">${captionFrom(file, exif)}</div>`;
+  }
+
+  document.getElementById("openFull").onclick = () => window.open(file, "_blank");
 
   resetZoomPan();
-  setTimeout(() => modalImg.style.opacity = 1, 50);
+
+  closeDrawer(); /* start closed */
+  drawerY = drawerClosedY;
+  drawer.style.bottom = drawerClosedY + "px";
+
+  setTimeout(()=> modalImg.style.opacity=1, 60);
 }
 
-/* CLICK OUTSIDE TO CLOSE */
-modal.onclick = (e) => {
-  if (e.target === modal) modal.style.display = "none";
+/* Close modal on outside click */
+modal.onclick = e => { if (e.target === modal) modal.style.display="none"; };
+
+/* Drawer physics */
+let draggingDrawer = false;
+
+drawer.addEventListener("touchstart", (e) => {
+  draggingDrawer = true;
+  drawerLastY = e.touches[0].clientY;
+  drawerLastMoveTime = Date.now();
+  drawerVelocity = 0;
+});
+
+drawer.addEventListener("touchmove", (e) => {
+  if (!draggingDrawer) return;
+  const y = e.touches[0].clientY;
+  const dy = y - drawerLastY;
+
+  const now = Date.now();
+  drawerVelocity = (dy / (now - drawerLastMoveTime)) * 18;
+  drawerLastMoveTime = now;
+  drawerLastY = y;
+
+  drawerY += dy;
+
+  if (drawerY > 60) drawerY = 60;
+  if (drawerY < drawerClosedY - 60) drawerY = drawerClosedY - 60;
+
+  drawer.style.bottom = `${drawerY}px`;
+}, { passive:false });
+
+drawer.addEventListener("touchend", () => {
+  draggingDrawer = false;
+  animateDrawer();
+});
+
+function animateDrawer() {
+  if (drawerAnimating) return;
+  drawerAnimating = true;
+
+  const step = () => {
+    drawerVelocity *= 0.9;
+    drawerY += drawerVelocity;
+
+    if (drawerVelocity > 0 && drawerY < drawerOpenY - 40) {
+      drawerY = drawerOpenY;
+      drawerAnimating = false;
+      drawerOpen = true;
+      drawer.style.bottom = drawerOpenY + "px";
+      return;
+    }
+    if (drawerVelocity < 0 && drawerY > drawerClosedY + 40) {
+      drawerY = drawerClosedY;
+      drawerAnimating = false;
+      drawerOpen = false;
+      drawer.style.bottom = drawerClosedY + "px";
+      return;
+    }
+
+    drawer.style.bottom = `${drawerY}px`;
+
+    if (Math.abs(drawerVelocity) > 0.3) {
+      requestAnimationFrame(step);
+    } else {
+      if (drawerY > drawerClosedY / 2) {
+        drawerOpen = true;
+        drawerY = drawerOpenY;
+      } else {
+        drawerOpen = false;
+        drawerY = drawerClosedY;
+      }
+      drawer.style.bottom = drawerY + "px";
+      drawerAnimating = false;
+    }
+  };
+
+  requestAnimationFrame(step);
+}
+
+/* Tap handle */
+drawerHandle.onclick = () => {
+  if (drawerOpen) {
+    drawerOpen = false;
+    drawerY = drawerClosedY;
+  } else {
+    drawerOpen = true;
+    drawerY = drawerOpenY;
+  }
+  drawer.style.bottom = drawerY + "px";
 };
 
-/* KEYBOARD */
-document.onkeydown = (e) => {
+/* Navigation */
+document.onkeydown = e => {
   if (modal.style.display !== "flex") return;
-
-  if (e.key === "Escape") modal.style.display = "none";
+  if (e.key === "Escape") modal.style.display="none";
   if (e.key === "ArrowRight") openNext();
   if (e.key === "ArrowLeft") openPrev();
 };
 
-function openNext() {
-  if (currentIndex < imageList.length - 1) openModal(currentIndex + 1);
-}
-function openPrev() {
-  if (currentIndex > 0) openModal(currentIndex - 1);
-}
+function openNext(){ if (currentIndex < imageList.length-1) openModal(currentIndex+1); }
+function openPrev(){ if (currentIndex > 0) openModal(currentIndex-1); }
 
-/* ZOOM + PAN */
-modalImg.onwheel = function(e) {
+/* DESKTOP ZOOM & PAN */
+modalImg.onwheel = e => {
   e.preventDefault();
-  const delta = e.deltaY < 0 ? 0.15 : -0.15;
-
-  zoom = Math.max(1, zoom + delta);
+  zoom = Math.max(1, zoom + (e.deltaY < 0 ? 0.15 : -0.15));
   updateZoomPan();
 };
 
-/* SWIPE */
-let touchStartX = 0;
-
-modalImg.addEventListener("touchstart", (e) => {
-  touchStartX = e.touches[0].clientX;
-}, { passive: true });
-
-modalImg.addEventListener("touchend", (e) => {
-  const end = e.changedTouches[0].clientX;
-  if (end - touchStartX > 60) openPrev();
-  if (touchStartX - end > 60) openNext();
-}, { passive: true });
-
-/* DRAG PAN */
-modalImg.onmousedown = function(e) {
+modalImg.onmousedown = e => {
   e.preventDefault();
-  modalImg.style.cursor = "grabbing";
+  let sx=e.clientX, sy=e.clientY;
 
-  let startX = e.clientX;
-  let startY = e.clientY;
-
-  function move(ev) {
-    panX += (ev.clientX - startX) / zoom;
-    panY += (ev.clientY - startY) / zoom;
-    startX = ev.clientX;
-    startY = ev.clientY;
+  function move(ev){
+    panX += (ev.clientX - sx) / zoom;
+    panY += (ev.clientY - sy) / zoom;
+    sx=ev.clientX; sy=ev.clientY;
     updateZoomPan();
   }
-
-  function stop() {
+  function stop(){
     document.removeEventListener("mousemove", move);
     document.removeEventListener("mouseup", stop);
-    modalImg.style.cursor = "grab";
   }
-
   document.addEventListener("mousemove", move);
   document.addEventListener("mouseup", stop);
 };
 
-function resetZoomPan() {
-  zoom = 1;
-  panX = 0;
-  panY = 0;
+/* PINCH ZOOM */
+modalImg.addEventListener("touchmove", function(e){
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+
+    if (lastTouchDistance) {
+      zoom=Math.max(1, zoom*(dist/lastTouchDistance));
+      updateZoomPan();
+    }
+    lastTouchDistance=dist;
+  }
+},{passive:false});
+modalImg.addEventListener("touchend",()=> lastTouchDistance=0);
+
+/* DOUBLE TAP ZOOM */
+modalImg.addEventListener("touchend", function(e){
+  const now = Date.now();
+  if (now - doubleTapTime < 280) {
+    zoom = zoom === 1 ? 2 : 1;
+    panX=0;panY=0;
+    updateZoomPan();
+  }
+  doubleTapTime = now;
+});
+
+/* SWIPE NEXT/PREV */
+let touchStartX=0;
+modalImg.addEventListener("touchstart", e => touchStartX = e.touches[0].clientX);
+modalImg.addEventListener("touchend", e => {
+  const end=e.changedTouches[0].clientX;
+  if (end - touchStartX > 60) openPrev();
+  if (touchStartX - end > 60) openNext();
+});
+
+/* ZOOM + PAN */
+function resetZoomPan(){
+  zoom=1;panX=0;panY=0;
   updateZoomPan();
 }
-
-function updateZoomPan() {
+function updateZoomPan(){
   modalImg.style.transform = `scale(${zoom}) translate(${panX}px, ${panY}px)`;
-  zoomLevelDisplay.innerText = Math.round(zoom * 100) + "%";
+  zoomLevelDisplay.innerText = Math.round(zoom*100)+"%";
   zoomLevelDisplay.style.display = zoom === 1 ? "none" : "block";
 }
 
-/* INIT */
 init();
 </script>
 
