@@ -9,8 +9,8 @@
   :root {
     color-scheme: light dark;
     --font: 16px/1.5 "Inter", "Helvetica Neue", Arial, sans-serif;
-    --panel-bg-light: rgba(0,0,0,0.05);
-    --panel-bg-dark: rgba(255,255,255,0.06);
+    --panel-bg-light: rgba(0,0,0,0.15);
+    --panel-bg-dark: rgba(255,255,255,0.18);
     --accent: #00aaff;
   }
 
@@ -20,33 +20,32 @@
     font: var(--font);
     overflow-x: hidden;
     transition: background .3s, color .3s;
-    display: flex;
-    gap: 40px;
+    display: block;
   }
 
   h1 {
     font-weight: 500;
     letter-spacing: -0.3px;
     margin-top: 0;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 32px;
   }
 
-  /* SIDEBAR FOR CATEGORIES */
-  #sidebar {
-    width: 160px;
-    position: sticky;
-    top: 20px;
-    height: fit-content;
-  }
-
+  /* Categories under title */
   #categories {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
     list-style: none;
     padding: 0;
+    margin: 10px 0 30px 0;
+    font-size: 16px;
   }
 
   #categories li {
-    margin: 6px 0;
     cursor: pointer;
-    opacity: 0.85;
+    opacity: 0.75;
     transition: 0.2s;
   }
 
@@ -92,24 +91,27 @@
     opacity: 1;
   }
 
-  /* Hover EXIF panel */
+  /* Hover EXIF panel — now much more opaque */
   #hoverInfo {
     position: fixed;
-    top: 120px;
     width: 260px;
     min-height: 80px;
     padding: 18px;
     border-radius: 10px;
     opacity: 0;
     white-space: pre-line;
-    transition: opacity .3s ease;
+    transition: opacity .25s ease;
     pointer-events: none;
     font-size: 15px;
     z-index: 999999;
   }
 
-  @media (prefers-color-scheme: light) { #hoverInfo { background: var(--panel-bg-light); } }
-  @media (prefers-color-scheme: dark)  { #hoverInfo { background: var(--panel-bg-dark);  } }
+  @media (prefers-color-scheme: light) { 
+    #hoverInfo { background: var(--panel-bg-light); color: #111; } 
+  }
+  @media (prefers-color-scheme: dark)  { 
+    #hoverInfo { background: var(--panel-bg-dark); color: #fff; }  
+  }
 
   .exif-line {
     display: flex;
@@ -141,9 +143,9 @@
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
   }
 
-@media (prefers-color-scheme: light) {
-  #modalContent { border-color: rgba(0,0,0,0.25); }
-}
+  @media (prefers-color-scheme: light) {
+    #modalContent { border-color: rgba(0,0,0,0.25); }
+  }
 
   #modalImg {
     width: 70%;
@@ -173,17 +175,13 @@
     font-size: 14px;
     display: none;
   }
-
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div id="sidebar">
-  <h1>photo dump</h1>
-  <ul id="categories"></ul>
-</div>
+<h1>photo dump</h1>
+<ul id="categories"></ul>
 
 <div id="hoverInfo"></div>
 <div class="gallery" id="gallery"></div>
@@ -261,6 +259,7 @@ async function init() {
 
 function buildCategories() {
   const cats = [...new Set(imageList.map(i => i.category))];
+
   cats.forEach(cat => {
     const li = document.createElement("li");
     li.textContent = cat === "root" ? "All Images" : cat;
