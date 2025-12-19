@@ -20,7 +20,6 @@
     font: var(--font);
   }
 
-  /* MOBILE TITLE */
   h1 {
     text-align: center;
     margin: 0 0 20px 0;
@@ -36,7 +35,6 @@
     }
   }
 
-  /* CATEGORIES */
   #categories {
     display: flex;
     flex-wrap: wrap;
@@ -55,24 +53,20 @@
     font-size: 18px;
     transition: .2s;
   }
-
   #categories li:hover {
     opacity: 1;
     font-weight: 600;
     background: rgba(0,0,0,0.1);
   }
   @media(prefers-color-scheme:dark){
-    #categories li:hover {
-      background: rgba(255,255,255,0.1);
-    }
+    #categories li:hover { background: rgba(255,255,255,0.1); }
   }
 
-  /* GALLERY */
   .gallery {
     column-count: 3;
     column-gap: 16px;
   }
-  @media(max-width:900px){ .gallery{ column-count: 2; } }
+  @media(max-width:900px){ .gallery{ column-count:2; } }
   @media(max-width:700px){
     .gallery {
       column-count: 1 !important;
@@ -90,10 +84,7 @@
     transform: translateY(20px);
     animation: fadeUp .6s forwards;
   }
-
-  @keyframes fadeUp {
-    to { opacity:1; transform:translateY(0); }
-  }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0);} }
 
   .item img {
     width: 100%;
@@ -103,7 +94,7 @@
   }
   .loaded { opacity: 1 !important; }
 
-  /* DESKTOP HOVER EXIF */
+  /* Floating EXIF hover panel (desktop only) */
   #hoverInfo {
     position: fixed;
     padding: 14px 16px;
@@ -114,64 +105,53 @@
     transition: opacity .25s;
     z-index: 99999;
   }
-  @media(prefers-color-scheme:light){
-    #hoverInfo{ background:var(--panel-bg-light); color:#111; }
-  }
-  @media(prefers-color-scheme:dark){
-    #hoverInfo{ background:var(--panel-bg-dark); color:white; }
-  }
-  @media(max-width:700px){
-    #hoverInfo { display:none!important; }
-  }
+  @media(prefers-color-scheme:light){ #hoverInfo{background:var(--panel-bg-light);color:#111} }
+  @media(prefers-color-scheme:dark){ #hoverInfo{background:var(--panel-bg-dark);color:#fff} }
+  @media(max-width:700px){#hoverInfo{display:none!important}}
 
-  /* MODAL */
+  /* Modal */
   #modal {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,.88);
     backdrop-filter: blur(4px);
-    display:none;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-    z-index:9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    z-index: 9999;
   }
 
   #modalContent {
-    width:95%;
-    height:90%;
-    display:flex;
-    border-radius:12px;
-    overflow:hidden;
+    width: 95%;
+    height: 90%;
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
   }
 
-  @media(max-width:700px){
-    #modalContent{ flex-direction:column; }
-  }
+  @media(max-width:700px){ #modalContent{flex-direction:column} }
 
-  /* IMAGE (shared mobile+desktop transform engine) */
   #modalImg {
-    flex:1;
-    width:100%;
-    height:100%;
-    object-fit:contain;
-    background:black;
-    touch-action:none;
-    will-change: transform;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+    touch-action: none;
+    transition: transform .25s ease-out;
   }
 
-  /* DESKTOP EXIF PANEL */
+  /* Desktop EXIF panel */
   #metaPanel {
-    width:32%;
-    padding:20px;
-    overflow-y:auto;
-    background:rgba(0,0,0,.65);
+    width: 32%;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgba(0,0,0,.65);
     color:white;
     position:relative;
   }
-  @media(max-width:700px){
-    #metaPanel{ display:none; }
-  }
+  @media(max-width:700px){#metaPanel{display:none}}
 
   #openFull {
     position:absolute;
@@ -185,42 +165,32 @@
     cursor:pointer;
     opacity:.7;
   }
-  #openFull:hover { opacity:1; }
+  #openFull:hover {opacity:1;}
 
   #captionText {
     margin-top:12px;
-    opacity:.9;
     font-size:15px;
+    opacity:.9;
   }
 
-  .exif-line {
-    display:flex;
-    gap:8px;
-    margin-bottom:4px;
-  }
+  .exif-line { display:flex; gap:8px; margin-bottom:4px; }
 
-  /* MOBILE EXIF DRAWER */
+  /* MOBILE DRAWER */
   #drawer {
     position: fixed;
-    left:0; right:0;
-    bottom:-260px;
-    height:260px;
-    padding:16px 20px;
-    border-radius:18px 18px 0 0;
-    backdrop-filter:blur(10px);
+    left: 0; right: 0;
+    bottom: -260px;
+    height: 260px;
+    padding: 16px 20px;
+    border-radius: 18px 18px 0 0;
+    backdrop-filter: blur(10px);
+    z-index: 999999;
     display:none;
-    z-index:999999;
   }
-  @media(max-width:700px){
-    #drawer{ display:block; }
-  }
+  @media(max-width:700px){#drawer{display:block}}
 
-  @media(prefers-color-scheme:light){
-    #drawer { background:var(--drawer-bg-light); color:#111; }
-  }
-  @media(prefers-color-scheme:dark){
-    #drawer { background:var(--drawer-bg-dark); color:white; }
-  }
+  @media(prefers-color-scheme:light){#drawer{background:var(--drawer-bg-light);color:#111}}
+  @media(prefers-color-scheme:dark){#drawer{background:var(--drawer-bg-dark);color:#fff}}
 
   #drawerHandle {
     width:48px;
@@ -237,6 +207,7 @@
 <h1>photo dump</h1>
 
 <ul id="categories"></ul>
+
 <div id="hoverInfo"></div>
 
 <div class="gallery" id="gallery"></div>
@@ -245,7 +216,6 @@
 <div id="modal">
   <div id="modalContent">
     <img id="modalImg">
-
     <div id="metaPanel">
       <button id="openFull">full</button>
       <div id="exifContent"></div>
@@ -254,7 +224,7 @@
   </div>
 </div>
 
-<!-- Drawer -->
+<!-- Mobile Drawer -->
 <div id="drawer">
   <div id="drawerHandle"></div>
   <div id="drawerContent"></div>
@@ -263,64 +233,52 @@
 <script src="https://cdn.jsdelivr.net/npm/exifreader/dist/exif-reader.min.js"></script>
 
 <script>
-/* DOM */
-const body=document.body;
+/* DOM + State */
+const gallery=document.getElementById("gallery");
 const modal=document.getElementById("modal");
 const modalImg=document.getElementById("modalImg");
+const hoverInfo=document.getElementById("hoverInfo");
 const metaPanel=document.getElementById("metaPanel");
 const exifContent=document.getElementById("exifContent");
 const captionText=document.getElementById("captionText");
 const drawer=document.getElementById("drawer");
 const drawerContent=document.getElementById("drawerContent");
-const hoverInfo=document.getElementById("hoverInfo");
 const categoriesList=document.getElementById("categories");
-const gallery=document.getElementById("gallery");
 
-/* STATE */
 let imageList=[];
 let captions={};
 let currentIndex=0;
 
-/* Transform engine */
-let scale=1;
-let offsetX=0;
-let offsetY=0;
-
-/* Mobile pinch & pan */
+let zoom=1;
 let isPinching=false;
-let pinchStartScale=1;
 let lastDist=0;
-let lastTouchX=0;
-let lastTouchY=0;
+let zoomStart=1;
 
-/* Drawer */
+let swipeStartY=0;
+let isSwipe=false;
+
 let drawerOpen=false;
-let drawerY=-260;
 
-/* Desktop pan */
-let desktopPanning=false;
-let lastMouseX=0;
-let lastMouseY=0;
-
-/* ---------------------------
-   Load captions
----------------------------- */
+/* Load captions */
 async function loadCaptions(){
   try{
     const r=await fetch("captions.json");
     captions=await r.json();
-  }catch{ captions={}; }
+  }catch{captions={};}
 }
 
-/* ---------------------------
-   Load GitHub images
----------------------------- */
+/* Image optimizer */
+function optimize(url,w=900,q=75){
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${w}&q=${q}&output=webp`;
+}
+
+/* Scan GitHub */
 async function scanGitHub(path=""){
   const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}`;
   const r=await fetch(api);
   const files=await r.json();
 
-  for(const f of files){
+  for(let f of files){
     if(f.type==="file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)){
       imageList.push({
         file:f.download_url,
@@ -334,205 +292,198 @@ async function scanGitHub(path=""){
   }
 }
 
-/* ---------------------------
-   Build gallery
----------------------------- */
-function buildGallery(){
-  imageList.forEach((img,i)=>{
-    const item=document.createElement("div");
-    item.className="item";
-
-    const im=document.createElement("img");
-    im.src=optimize(img.file);
-    im.onload=()=>im.classList.add("loaded");
-
-    /* Desktop hover EXIF only */
-    if(window.innerWidth>700){
-      item.onmouseenter=async()=>{
-        const ex=await loadExif(img.file);
-        hoverInfo.innerHTML=exifHtml(ex);
-        hoverInfo.style.opacity=1;
-      };
-      item.onmouseleave=()=>hoverInfo.style.opacity=0;
-    }
-
-    item.onclick=()=>openModal(i);
-    item.appendChild(im);
-    gallery.appendChild(item);
+/* Build categories */
+function buildCategories(){
+  const cats=[...new Set(imageList.map(i=>i.category))];
+  cats.forEach(cat=>{
+    const li=document.createElement("li");
+    li.textContent=(cat==="all"?"All Images":cat);
+    li.onclick=()=>filterCategory(cat);
+    categoriesList.appendChild(li);
   });
 }
 
-/* ---------------------------
-   Optimize images
----------------------------- */
-function optimize(url,w=900,q=75){
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${w}&q=${q}&output=webp`;
+function filterCategory(cat){
+  gallery.innerHTML="";
+  const imgs=(cat==="all")?imageList:imageList.filter(i=>i.category===cat);
+  imgs.forEach((img,i)=>buildItem(img,i));
 }
 
-/* ---------------------------
-   EXIF + Caption
----------------------------- */
+/* Build gallery */
+function buildGallery(){
+  imageList.forEach((img,i)=>buildItem(img,i));
+}
+
+function buildItem(imgData,idx){
+  const item=document.createElement("div");
+  item.className="item";
+
+  const img=document.createElement("img");
+  img.loading="lazy";
+  img.src=optimize(imgData.file);
+  img.onload=()=>img.classList.add("loaded");
+
+  /* Desktop: hover EXIF */
+  if(window.innerWidth>700){
+    item.onmouseenter=async(e)=>{
+      const ex=await loadExif(imgData.file);
+      hoverInfo.innerHTML=exifHtml(ex);
+      hoverInfo.style.opacity=1;
+      positionHoverPanel(e.target);
+    };
+    item.onmouseleave=()=>hoverInfo.style.opacity=0;
+  }
+
+  item.onclick=()=>openModal(idx);
+  item.appendChild(img);
+  gallery.appendChild(item);
+}
+
+/* EXIF utilities */
 async function loadExif(file){
-  const buf=await fetch(file).then(r=>r.arrayBuffer());
-  return ExifReader.load(buf);
+  const b=await fetch(file).then(r=>r.arrayBuffer());
+  return ExifReader.load(b);
 }
 
-function exifHtml(ex){
+function exifHtml(exif){
   return [
-    ["📷",ex.Model?.description],
-    ["🔍",ex.LensModel?.description],
-    ["🔆",ex.FNumber?.description],
-    ["⏱",ex.ExposureTime?.description],
-    ["🎚",ex.ISOSpeedRatings?.description],
-    ["📐",ex.FocalLength?.description],
-  ].filter(x=>x[1]).map(x=>`<div class="exif-line">${x[0]} ${x[1]}</div>`).join("");
+    ["📷",exif.Model?.description],
+    ["🔍",exif.LensModel?.description],
+    ["🔆",exif.FNumber?.description],
+    ["⏱",exif.ExposureTime?.description],
+    ["🎚",exif.ISOSpeedRatings?.description],
+    ["📐",exif.FocalLength?.description]
+  ].filter(x=>x[1]).map(x=>`
+    <div class="exif-line">${x[0]} ${x[1]}</div>
+  `).join("");
 }
 
-function getCaption(file,name,ex){
+function getCaption(file,name,exif){
   if(captions[name]) return captions[name];
-  if(ex["ImageDescription"]?.description) return ex["ImageDescription"].description;
+  if(exif["ImageDescription"]?.description) return exif["ImageDescription"].description;
   return name.replace(/\.[^/.]+$/,"").replace(/[_-]/g," ");
 }
 
-/* ---------------------------
-   Open modal
----------------------------- */
+/* Desktop EXIF panel positioning */
+function positionHoverPanel(img){
+  const r=img.getBoundingClientRect();
+  const w=hoverInfo.offsetWidth+20;
+  hoverInfo.style.left=(r.right+w>window.innerWidth?(r.left-w):(r.right+20))+"px";
+  hoverInfo.style.top=r.top+"px";
+}
+
+/* Open modal */
 async function openModal(i){
   currentIndex=i;
+
   const {file,name}=imageList[i];
-
   modal.style.display="flex";
-  body.style.overflow="hidden";
-
-  scale=1;
-  offsetX=0;
-  offsetY=0;
-  applyTransform();
-
-  const ex=await loadExif(file);
-  const cap=getCaption(file,name,ex);
-
   modalImg.src=file;
 
+  zoom=1;
+  modalImg.style.transform="scale(1)";
+
+  const exif=await loadExif(file);
+  const cap=getCaption(file,name,exif);
+
   if(window.innerWidth>700){
-    exifContent.innerHTML=exifHtml(ex);
+    exifContent.innerHTML=exifHtml(exif);
     captionText.textContent=cap;
-  } else {
-    drawerContent.innerHTML=exifHtml(ex)+`<div style=margin-top:12px;opacity:.75>${cap}</div>`;
+  }else{
+    drawerContent.innerHTML=exifHtml(exif)+
+      `<div style="margin-top:12px; opacity:.75;">${cap}</div>`;
   }
 
   hoverInfo.style.opacity=0;
+
+  document.getElementById("openFull").onclick=()=>window.open(file,"_blank");
 }
 
-/* ---------------------------
-   Close modal
----------------------------- */
-function closeModal(){
-  modal.style.display="none";
-  body.style.overflow="";
-  closeDrawer();
-}
-
-modal.addEventListener("click",e=>{
-  if(e.target===modal) closeModal();
-});
-
-/* ESC closes modal ALWAYS */
+/* PHASE 1 ADDITION — ESC closes */
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape") closeModal();
 });
 
-/* Arrow navigation */
+/* PHASE 1 ADDITION — arrow keys */
 document.addEventListener("keydown",e=>{
   if(modal.style.display!=="flex") return;
 
-  if(scale!==1) return; // locked: only at rest
-
-  if(e.key==="ArrowRight")
-    if(currentIndex<imageList.length-1) openModal(currentIndex+1);
-
-  if(e.key==="ArrowLeft")
-    if(currentIndex>0) openModal(currentIndex-1);
+  if(e.key==="ArrowRight" && currentIndex<imageList.length-1){
+    openModal(currentIndex+1);
+  }
+  if(e.key==="ArrowLeft" && currentIndex>0){
+    openModal(currentIndex-1);
+  }
 });
 
-/* ---------------------------
-   MOBILE: Pinch + Pan + Snapback
----------------------------- */
+/* Close modal */
+modal.onclick=e=>{
+  if(e.target===modal) closeModal();
+};
+
+function closeModal(){
+  modal.style.display="none";
+  closeDrawer();
+}
+
+/* MOBILE PINCH ZOOM (no pan) */
 modalImg.addEventListener("touchstart",e=>{
   if(e.touches.length===2){
-    isPinching=true;
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
-    lastDist=Math.sqrt(dx*dx+dy*dy);
-    pinchStartScale=scale;
-  } else if(e.touches.length===1){
-    lastTouchX=e.touches[0].clientX;
-    lastTouchY=e.touches[0].clientY;
+    lastDist=Math.sqrt(dx*dy+dy*dy);
+    zoomStart=zoom;
+    isPinching=true;
   }
 },{passive:true});
 
 modalImg.addEventListener("touchmove",e=>{
-  if(e.touches.length===2 && isPinching){
+  if(e.touches.length===2){
     e.preventDefault();
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
     const dist=Math.sqrt(dx*dx+dy*dy);
+    const factor=dist/lastDist;
 
-    scale=Math.min(2,Math.max(1,pinchStartScale*(dist/lastDist)));
-    applyTransform();
-  }
-
-  if(e.touches.length===1 && scale>1){
-    e.preventDefault();
-    const x=e.touches[0].clientX;
-    const y=e.touches[0].clientY;
-    offsetX+=(x-lastTouchX)*0.8;
-    offsetY+=(y-lastTouchY)*0.8;
-    lastTouchX=x;
-    lastTouchY=y;
-    applyTransform();
+    zoom=Math.min(2,Math.max(1,zoomStart*factor));
+    modalImg.style.transform=`scale(${zoom})`;
   }
 },{passive:false});
 
 modalImg.addEventListener("touchend",e=>{
   if(isPinching && e.touches.length<2){
+    modalImg.style.transition="transform .25s ease-out";
+    modalImg.style.transform="scale(1)";
+    zoom=1;
     isPinching=false;
-    snapBack();
+    setTimeout(()=>modalImg.style.transition="",300);
   }
 });
 
-/* Snap-back */
-function snapBack(){
-  scale=1;
-  offsetX=0;
-  offsetY=0;
-  modalImg.style.transition="transform .25s ease-out";
-  applyTransform();
-  setTimeout(()=>modalImg.style.transition="",300);
-}
-
-/* ---------------------------
-   MOBILE: Swipe Up/Down for Drawer
----------------------------- */
-modalImg.addEventListener("touchstart",e=>{
-  if(scale===1 && e.touches.length===1){
+/* MOBILE SWIPE (working) */
+modalImg.addEventListener("touchstart",(e)=>{
+  if(e.touches.length===1){
     swipeStartY=e.touches[0].clientY;
-  }
+    isSwipe=true;
+  } else isSwipe=false;
 },{passive:true});
 
-modalImg.addEventListener("touchend",e=>{
-  if(scale!==1 || e.touches.length>0) return;
+modalImg.addEventListener("touchend",(e)=>{
+  if(!isSwipe || isPinching) return;
+  const dy=e.changedTouches[0].clientY - swipeStartY;
 
-  const dy=e.changedTouches[0].clientY-swipeStartY;
+  if(dy < -60){
+    openDrawer();
+    return;
+  }
 
-  if(dy < -60) openDrawer();
   if(dy > 60){
     if(drawerOpen) closeDrawer();
     else closeModal();
   }
 });
 
-/* Drawer */
+/* Drawer open/close */
 function openDrawer(){
   drawer.style.bottom="0px";
   drawerOpen=true;
@@ -542,76 +493,43 @@ function closeDrawer(){
   drawerOpen=false;
 }
 
-/* ---------------------------
-   DESKTOP: Cursor-centered Zoom
----------------------------- */
+/* DESKTOP ZOOM (original stable version) */
 modalImg.addEventListener("wheel",e=>{
   if(window.innerWidth<=700) return;
-
   e.preventDefault();
-
-  const rect=modalImg.getBoundingClientRect();
-  const cx=e.clientX-rect.left;
-  const cy=e.clientY-rect.top;
-
-  const prevScale=scale;
-  scale+= (e.deltaY<0 ? 0.1 : -0.1);
-  scale=Math.min(3,Math.max(1,scale));
-
-  const scaleChange=scale/prevScale;
-
-  offsetX = (offsetX - cx) * scaleChange + cx;
-  offsetY = (offsetY - cy) * scaleChange + cy;
-
-  applyTransform();
+  zoom=Math.max(1, zoom+(e.deltaY<0?0.15:-0.15));
+  modalImg.style.transform=`scale(${zoom})`;
 },{passive:false});
 
-/* ---------------------------
-   DESKTOP: Pan with mouse
----------------------------- */
+/* DESKTOP DRAG PAN (original working version) */
 modalImg.addEventListener("mousedown",e=>{
   if(window.innerWidth<=700) return;
 
-  desktopPanning=true;
-  lastMouseX=e.clientX;
-  lastMouseY=e.clientY;
-});
+  e.preventDefault();
+  let sx=e.clientX, sy=e.clientY;
+  let startLeft=modalImg.offsetLeft;
+  let startTop=modalImg.offsetTop;
 
-document.addEventListener("mousemove",e=>{
-  if(desktopPanning){
-    offsetX += (e.clientX-lastMouseX);
-    offsetY += (e.clientY-lastMouseY);
-    lastMouseX=e.clientX;
-    lastMouseY=e.clientY;
-    applyTransform();
+  function mv(ev){
+    modalImg.style.transform=`scale(${zoom}) translate(${(ev.clientX-sx)/zoom}px, ${(ev.clientY-sy)/zoom}px)`;
   }
+  function up(){
+    document.removeEventListener("mousemove",mv);
+    document.removeEventListener("mouseup",up);
+  }
+
+  document.addEventListener("mousemove",mv);
+  document.addEventListener("mouseup",up);
 });
 
-document.addEventListener("mouseup",()=>desktopPanning=false);
-
-/* ---------------------------
-   Apply transform
----------------------------- */
-function applyTransform(){
-  modalImg.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
-}
-
-/* ---------------------------
-   Init page
----------------------------- */
+/* INIT */
 async function init(){
   await loadCaptions();
   await scanGitHub();
+  buildCategories();
   buildGallery();
 }
 init();
-
-/* ---------------------------
-   Optimize helper
----------------------------- */
-function optimize(url){
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=900&q=75&output=webp`;
-}
 </script>
 
 </body>
