@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Gallery</title>
+<title>photo dump</title>
 
 <style>
   :root {
@@ -19,20 +19,47 @@
     padding: 20px;
     font: var(--font);
     overflow-x: hidden;
-    transition: background 0.3s, color 0.3s;
+    transition: background .3s, color .3s;
+    display: flex;
+    gap: 40px;
   }
 
   h1 {
-    text-align: center;
-    margin-bottom: 40px;
     font-weight: 500;
     letter-spacing: -0.3px;
+    margin-top: 0;
+  }
+
+  /* SIDEBAR FOR CATEGORIES */
+  #sidebar {
+    width: 160px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+  }
+
+  #categories {
+    list-style: none;
+    padding: 0;
+  }
+
+  #categories li {
+    margin: 6px 0;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: 0.2s;
+  }
+
+  #categories li:hover {
+    opacity: 1;
+    font-weight: 600;
   }
 
   /* Masonry layout */
   .gallery {
     column-count: 3;
     column-gap: 20px;
+    width: 100%;
   }
 
   @media (max-width: 900px) { .gallery { column-count: 2; } }
@@ -44,13 +71,19 @@
     cursor: zoom-in;
     border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.2s;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp .6s forwards ease;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .item img {
     width: 100%;
     display: block;
-    transition: opacity 0.3s;
+    transition: opacity .4s;
     opacity: 0;
     border-radius: 12px;
   }
@@ -59,16 +92,12 @@
     opacity: 1;
   }
 
-  .item:hover {
-    transform: scale(1.01);
-  }
-
   /* Hover EXIF panel */
   #hoverInfo {
     position: fixed;
     top: 120px;
-    right: 40px;
     width: 260px;
+    min-height: 80px;
     padding: 18px;
     border-radius: 10px;
     opacity: 0;
@@ -76,21 +105,17 @@
     transition: opacity .3s ease;
     pointer-events: none;
     font-size: 15px;
+    z-index: 999999;
   }
 
   @media (prefers-color-scheme: light) { #hoverInfo { background: var(--panel-bg-light); } }
   @media (prefers-color-scheme: dark)  { #hoverInfo { background: var(--panel-bg-dark);  } }
 
-  /* EXIF icons */
   .exif-line {
     display: flex;
     gap: 8px;
     align-items: center;
-    margin-bottom: 4px;
-  }
-
-  .exif-line span {
-    opacity: .85;
+    margin-bottom: 3px;
   }
 
   /* Modal */
@@ -102,6 +127,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    z-index: 9999;
   }
 
   #modalContent {
@@ -109,14 +135,23 @@
     width: 85%;
     height: 85%;
     display: flex;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
   }
+
+@media (prefers-color-scheme: light) {
+  #modalContent { border-color: rgba(0,0,0,0.25); }
+}
 
   #modalImg {
     width: 70%;
     object-fit: contain;
     background: #000;
     cursor: grab;
-    transition: transform 0.1s;
+    transition: transform .2s ease-out;
+    touch-action: none;
   }
 
   #metaPanel {
@@ -138,11 +173,17 @@
     font-size: 14px;
     display: none;
   }
+
 </style>
 </head>
 
 <body>
-<h1>photo dump</h1>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <h1>photo dump</h1>
+  <ul id="categories"></ul>
+</div>
 
 <div id="hoverInfo"></div>
 <div class="gallery" id="gallery"></div>
@@ -150,98 +191,144 @@
 <div id="modal">
   <div id="modalContent">
     <img id="modalImg" src="">
-    <div id="metaPanel"></div>
+    <div id="metaPanel">
+      <button id="openFull" style="
+        margin-bottom: 15px;
+        padding: 8px 12px;
+        background: var(--accent);
+        border: none;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+      ">Open Full Resolution</button>
+
+      <div id="exifContent"></div>
+      <div id="captionText" style="margin-top: 15px; opacity: .85;"></div>
+    </div>
   </div>
 </div>
 
 <div id="zoomLevel"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/exifreader/dist/exif-reader.min.js"></script>
+
 <script>
+/* CONFIG */
 const username = "firdauskiagos";
 const repo = "images";
 
+/* ELEMENTS */
 const gallery = document.getElementById("gallery");
 const hoverInfo = document.getElementById("hoverInfo");
 const modal = document.getElementById("modal");
 const modalImg = document.getElementById("modalImg");
-const zoomLevelDisplay = document.getElementById("zoomLevel");
 const metaPanel = document.getElementById("metaPanel");
+const zoomLevelDisplay = document.getElementById("zoomLevel");
+const categoriesList = document.getElementById("categories");
 
+/* STATE */
 let imageList = [];
 let currentIndex = 0;
 let zoom = 1;
 let panX = 0;
 let panY = 0;
 
-async function autoDetectImages() {
-  const url = `https://api.github.com/repos/${username}/${repo}/contents`;
+/* AUTO-DETECT IMAGES & CATEGORIES */
+async function scanGitHub(path = "") {
+  const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
+  const res = await fetch(url);
+  const files = await res.json();
 
-  async function scanFolder(path = "") {
-    const res = await fetch(`${url}/${path}`);
-    const files = await res.json();
-
-    for (let f of files) {
-      if (f.type === "file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)) {
-        imageList.push({ file: f.download_url });
-      }
-      if (f.type === "dir") {
-        await scanFolder(f.path.replace(`${repo}/`, ""));
-      }
+  for (let f of files) {
+    if (f.type === "file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)) {
+      imageList.push({ 
+        file: f.download_url,
+        category: path || "root"
+      });
+    }
+    if (f.type === "dir") {
+      await scanGitHub(f.path.replace(`${repo}/`, ""));
     }
   }
-
-  await scanFolder();
 }
 
-async function initGallery() {
-  await autoDetectImages();
+async function init() {
+  await scanGitHub();
+  buildCategories();
+  buildGallery();
+}
 
-  imageList.forEach((imgData, idx) => {
-    const item = document.createElement("div");
-    item.className = "item";
-
-    const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = imgData.file;
-
-    img.onload = () => img.classList.add("loaded");
-
-    item.appendChild(img);
-
-    // Hover info
-    item.onmouseenter = () => showHoverInfo(imgData.file);
-    item.onmouseleave = () => hoverInfo.style.opacity = 0;
-
-    // Click → open modal
-    item.onclick = () => openModal(idx);
-
-    gallery.appendChild(item);
+function buildCategories() {
+  const cats = [...new Set(imageList.map(i => i.category))];
+  cats.forEach(cat => {
+    const li = document.createElement("li");
+    li.textContent = cat === "root" ? "All Images" : cat;
+    li.onclick = () => filterCategory(cat);
+    categoriesList.appendChild(li);
   });
 }
 
+/* FILTERING */
+function filterCategory(cat) {
+  gallery.innerHTML = "";
+  
+  const filtered = cat === "root"
+    ? imageList
+    : imageList.filter(i => i.category === cat);
+
+  filtered.forEach((imgData, idx) => buildItem(imgData, idx));
+}
+
+/* BUILD GALLERY */
+function buildGallery() {
+  imageList.forEach((imgData, idx) => buildItem(imgData, idx));
+}
+
+function buildItem(imgData, idx) {
+  const item = document.createElement("div");
+  item.className = "item";
+
+  const img = document.createElement("img");
+  img.loading = "lazy";
+  img.src = imgData.file;
+
+  img.onload = () => img.classList.add("loaded");
+
+  item.appendChild(img);
+
+  /* Hover EXIF */
+  item.onmouseenter = (e) => {
+    showHoverInfo(imgData.file);
+    positionHoverPanel(e.target);
+  };
+  item.onmouseleave = () => hoverInfo.style.opacity = 0;
+
+  /* Click → modal */
+  item.onclick = () => openModal(idx);
+
+  gallery.appendChild(item);
+}
+
+/* POSITION HOVER INFO PANEL LEFT/RIGHT */
+function positionHoverPanel(imgEl) {
+  const rect = imgEl.getBoundingClientRect();
+  const panelW = hoverInfo.offsetWidth + 20;
+
+  if (rect.right + panelW > window.innerWidth) {
+    hoverInfo.style.left = (rect.left - panelW) + "px";
+  } else {
+    hoverInfo.style.left = (rect.right + 20) + "px";
+  }
+
+  hoverInfo.style.top = rect.top + "px";
+}
+
+/* EXIF LOADING */
 async function showHoverInfo(file) {
   const exif = await loadExif(file);
   hoverInfo.innerHTML = exifToHtml(exif);
   hoverInfo.style.opacity = 1;
-}
-
-function exifToHtml(exif) {
-  const camera = exif["Model"]?.description;
-  const lens = exif["LensModel"]?.description;
-  const fnum = exif["FNumber"]?.description;
-  const speed = exif["ExposureTime"]?.description;
-  const iso = exif["ISOSpeedRatings"]?.description;
-  const focal = exif["FocalLength"]?.description;
-
-  return `
-    <div class="exif-line">📷 <span>${camera || ""}</span></div>
-    <div class="exif-line">🔍 <span>${lens || ""}</span></div>
-    <div class="exif-line">🔆 <span>${fnum || ""}</span></div>
-    <div class="exif-line">⏱ <span>${speed || ""}</span></div>
-    <div class="exif-line">🎚 <span>${iso || ""}</span></div>
-    <div class="exif-line">📐 <span>${focal || ""}</span></div>
-  `.trim();
 }
 
 async function loadExif(file) {
@@ -249,40 +336,99 @@ async function loadExif(file) {
   return ExifReader.load(buf);
 }
 
+function exifToHtml(exif) {
+  const i = [
+    ["📷", exif.Model?.description],
+    ["🔍", exif.LensModel?.description],
+    ["🔆", exif.FNumber?.description],
+    ["⏱", exif.ExposureTime?.description],
+    ["🎚", exif.ISOSpeedRatings?.description],
+    ["📐", exif.FocalLength?.description]
+  ];
+
+  return i.map(x =>
+    x[1] ? `<div class="exif-line">${x[0]} <span>${x[1]}</span></div>` : ""
+  ).join("");
+}
+
+/* CAPTION EXTRACTION */
+function extractCaption(file, exif) {
+  const desc = exif["ImageDescription"]?.description;
+  if (desc && desc.trim().length > 0) return desc.trim();
+
+  let name = file.split("/").pop().replace(/\.[^/.]+$/, "");
+  name = name.replace(/[-_]/g, " ");
+  name = name.replace(/\b\w/g, c => c.toUpperCase());
+  return name;
+}
+
+/* MODAL */
 async function openModal(i) {
   currentIndex = i;
   const file = imageList[i].file;
 
   modal.style.display = "flex";
+  modalImg.style.opacity = 0;
   modalImg.src = file;
 
   const exif = await loadExif(file);
-  metaPanel.innerHTML = exifToHtml(exif);
+  const caption = extractCaption(file, exif);
+
+  document.getElementById("exifContent").innerHTML = exifToHtml(exif);
+  document.getElementById("captionText").innerText = caption;
+
+  document.getElementById("openFull").onclick = () => {
+    window.open(file, "_blank");
+  };
 
   resetZoomPan();
+  setTimeout(() => modalImg.style.opacity = 1, 50);
 }
 
-// Close on click outside
+/* CLICK OUTSIDE TO CLOSE */
 modal.onclick = (e) => {
   if (e.target === modal) modal.style.display = "none";
 };
 
-// Keyboard navigation
+/* KEYBOARD */
 document.onkeydown = (e) => {
   if (modal.style.display !== "flex") return;
+
   if (e.key === "Escape") modal.style.display = "none";
-  if (e.key === "ArrowRight" && currentIndex < imageList.length - 1) openModal(currentIndex + 1);
-  if (e.key === "ArrowLeft" && currentIndex > 0) openModal(currentIndex - 1);
+  if (e.key === "ArrowRight") openNext();
+  if (e.key === "ArrowLeft") openPrev();
 };
 
-// Zoom + Pan
+function openNext() {
+  if (currentIndex < imageList.length - 1) openModal(currentIndex + 1);
+}
+function openPrev() {
+  if (currentIndex > 0) openModal(currentIndex - 1);
+}
+
+/* ZOOM + PAN */
 modalImg.onwheel = function(e) {
   e.preventDefault();
   const delta = e.deltaY < 0 ? 0.15 : -0.15;
+
   zoom = Math.max(1, zoom + delta);
   updateZoomPan();
 };
 
+/* SWIPE */
+let touchStartX = 0;
+
+modalImg.addEventListener("touchstart", (e) => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+
+modalImg.addEventListener("touchend", (e) => {
+  const end = e.changedTouches[0].clientX;
+  if (end - touchStartX > 60) openPrev();
+  if (touchStartX - end > 60) openNext();
+}, { passive: true });
+
+/* DRAG PAN */
 modalImg.onmousedown = function(e) {
   e.preventDefault();
   modalImg.style.cursor = "grabbing";
@@ -317,14 +463,14 @@ function resetZoomPan() {
 
 function updateZoomPan() {
   modalImg.style.transform = `scale(${zoom}) translate(${panX}px, ${panY}px)`;
-  zoomLevelDisplay.style.display = "block";
   zoomLevelDisplay.innerText = Math.round(zoom * 100) + "%";
-
-  if (zoom === 1) zoomLevelDisplay.style.display = "none";
+  zoomLevelDisplay.style.display = zoom === 1 ? "none" : "block";
 }
 
-initGallery();
+/* INIT */
+init();
 </script>
+
 </body>
 </html>
 
