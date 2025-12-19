@@ -3,71 +3,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Photo Gallery</title>
+<title>photo dumps</title>
 
 <style>
-  /* THEME */
   :root {
     color-scheme: light dark;
+    --font: 16px/1.5 "Inter", "Helvetica Neue", Arial, sans-serif;
   }
 
   body {
     margin: 0;
     padding: 20px;
-    font-family: Arial, sans-serif;
+    font: var(--font);
+    overflow-x: hidden;
     transition: background 0.3s, color 0.3s;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    body {
-      background: #111;
-      color: #eee;
-    }
-    .item {
-      background: #222;
-    }
-    #modalContent {
-      background: #222;
-      color: #eee;
-    }
-  }
-
-  @media (prefers-color-scheme: light) {
-    body {
-      background: #fff;
-      color: #222;
-    }
-    .item {
-      background: #fafafa;
-    }
-    #modalContent {
-      background: #fff;
-      color: #222;
-    }
   }
 
   h1 {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
   }
 
-  /* GALLERY GRID */
+  /* Pinterest (Masonry) layout */
   .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
+    column-count: 3;
+    column-gap: 20px;
+  }
+
+  @media (max-width: 900px) {
+    .gallery { column-count: 2; }
+  }
+
+  @media (max-width: 600px) {
+    .gallery { column-count: 1; }
   }
 
   .item {
-    position: relative;
+    break-inside: avoid;
+    margin-bottom: 20px;
     cursor: pointer;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     transition: transform 0.2s;
   }
 
   .item:hover {
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
 
   .item img {
@@ -76,31 +59,29 @@
     display: block;
   }
 
-  /* RIGHT-SIDE HOVER INFO PANEL */
+  /* Right-side hover info */
   #hoverInfo {
     position: fixed;
-    top: 100px;
+    top: 120px;
     right: 40px;
     width: 260px;
-    padding: 20px;
+    min-height: 80px;
+    padding: 18px;
     border-radius: 10px;
     background: rgba(0,0,0,0.05);
     backdrop-filter: blur(4px);
-    font-size: 14px;
-    line-height: 1.5;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    font-size: 15px;
+    white-space: pre-line;
   }
 
   @media (prefers-color-scheme: dark) {
-    #hoverInfo {
-      background: rgba(255,255,255,0.05);
-    }
+    #hoverInfo { background: rgba(255,255,255,0.05); }
   }
 
-  #hoverInfo h2 {
-    margin-top: 0;
-  }
-
-  /* FULLSCREEN MODAL */
+  /* Modal */
   #modal {
     position: fixed;
     top: 0;
@@ -121,36 +102,32 @@
     overflow: hidden;
   }
 
-  #modal img {
-    width: 65%;
+  #modalImg {
+    width: 70%;
     object-fit: contain;
     background: #000;
   }
 
   #metaPanel {
-    width: 35%;
+    width: 30%;
     padding: 20px;
     overflow-y: auto;
     font-size: 15px;
+    white-space: pre-line;
   }
 </style>
 </head>
 
 <body>
+<h1>photo dump</h1>
 
-<h1>My Photo Gallery</h1>
-
-<div id="hoverInfo">
-  <h2>Hover on an image</h2>
-  <p>Camera, lens, and EXIF info will appear here.</p>
-</div>
+<div id="hoverInfo"></div>
 
 <div class="gallery" id="gallery"></div>
 
-<!-- MODAL -->
 <div id="modal">
   <div id="modalContent">
-    <img id="modalImg" src="" />
+    <img id="modalImg" src="">
     <div id="metaPanel"></div>
   </div>
 </div>
@@ -159,16 +136,19 @@
 
 <script>
 const gallery = document.getElementById('gallery');
+const hoverInfo = document.getElementById('hoverInfo');
 const modal = document.getElementById('modal');
 const modalImg = document.getElementById('modalImg');
 const metaPanel = document.getElementById('metaPanel');
-const hoverInfo = document.getElementById('hoverInfo');
+
+let currentIndex = 0;
+let imageList = [];
 
 async function loadImages() {
   const res = await fetch('data.json');
-  const images = await res.json();
+  imageList = await res.json();
 
-  images.forEach(imgObj => {
+  imageList.forEach((imgObj, index) => {
     const file = imgObj.file;
 
     const item = document.createElement('div');
@@ -179,72 +159,76 @@ async function loadImages() {
 
     item.appendChild(imgTag);
 
-    // Hover → show info in right panel
     item.addEventListener('mouseenter', () => showHoverInfo(file));
-
-    // Click → open fullscreen modal
-    item.addEventListener('click', () => openModal(file));
+    item.addEventListener('mouseleave', () => fadeOutHover());
+    item.addEventListener('click', () => openModal(index));
 
     gallery.appendChild(item);
   });
 }
 
-// LOAD EXIF FOR HOVER PANEL
+/* Fade-out hover info */
+function fadeOutHover() {
+  hoverInfo.style.opacity = 0;
+}
+
+/* Hover info EXIF */
 async function showHoverInfo(file) {
   const buffer = await fetch(file).then(r => r.arrayBuffer());
   const exif = ExifReader.load(buffer);
 
-  const camera = exif['Model']?.description || "Unknown";
-  const lens = exif['LensModel']?.description || "Unknown";
-  const aperture = exif['FNumber']?.description || "Unknown";
-  const shutter = exif['ExposureTime']?.description || "Unknown";
-  const iso = exif['ISOSpeedRatings']?.description || "Unknown";
-  const focal = exif['FocalLength']?.description || "Unknown";
+  const data = stringifyMinimalExif(exif);
 
-  hoverInfo.innerHTML = `
-    <h2>Image Info</h2>
-    <p><b>File:</b> ${file}</p>
-    <p><b>Camera:</b> ${camera}</p>
-    <p><b>Lens:</b> ${lens}</p>
-    <p><b>Aperture:</b> ${aperture}</p>
-    <p><b>Shutter:</b> ${shutter}</p>
-    <p><b>ISO:</b> ${iso}</p>
-    <p><b>Focal Length:</b> ${focal}</p>
-  `;
+  hoverInfo.innerText = data || "(no exif)";
+  hoverInfo.style.opacity = 1;
 }
 
-// OPEN MODAL
-async function openModal(file) {
+/* Convert EXIF to pretty minimal text */
+function stringifyMinimalExif(exif) {
+  const fields = [
+    "Model",
+    "LensModel",
+    "FNumber",
+    "ExposureTime",
+    "ISOSpeedRatings",
+    "FocalLength"
+  ];
+
+  return fields
+    .map(k => exif[k]?.description)
+    .filter(Boolean)
+    .join("\n");
+}
+
+/* Open modal viewer */
+async function openModal(index) {
+  currentIndex = index;
+  const file = imageList[index].file;
+
   modal.style.display = "flex";
   modalImg.src = file;
 
-  // Load EXIF for modal
   const buffer = await fetch(file).then(r => r.arrayBuffer());
   const exif = ExifReader.load(buffer);
 
-  const camera = exif['Model']?.description || "Unknown";
-  const lens = exif['LensModel']?.description || "Unknown";
-  const aperture = exif['FNumber']?.description || "Unknown";
-  const shutter = exif['ExposureTime']?.description || "Unknown";
-  const iso = exif['ISOSpeedRatings']?.description || "Unknown";
-  const focal = exif['FocalLength']?.description || "Unknown";
-
-  metaPanel.innerHTML = `
-    <h2>Image Details</h2>
-    <p><b>File:</b> ${file}</p>
-    <p><b>Camera:</b> ${camera}</p>
-    <p><b>Lens:</b> ${lens}</p>
-    <p><b>Aperture:</b> ${aperture}</p>
-    <p><b>Shutter:</b> ${shutter}</p>
-    <p><b>ISO:</b> ${iso}</p>
-    <p><b>Focal Length:</b> ${focal}</p>
-  `;
+  metaPanel.innerText = stringifyMinimalExif(exif);
 }
 
-// CLICK OUTSIDE IMAGE → CLOSE MODAL
+/* Click outside to close modal */
 modal.addEventListener('click', (e) => {
-  if (e.target === modal) {
+  if (e.target === modal) modal.style.display = "none";
+});
+
+/* Keyboard navigation */
+document.addEventListener('keydown', (e) => {
+  if (modal.style.display !== "flex") return;
+
+  if (e.key === "Escape") {
     modal.style.display = "none";
+  } else if (e.key === "ArrowRight") {
+    if (currentIndex < imageList.length - 1) openModal(currentIndex + 1);
+  } else if (e.key === "ArrowLeft") {
+    if (currentIndex > 0) openModal(currentIndex - 1);
   }
 });
 
