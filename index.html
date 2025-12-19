@@ -14,103 +14,90 @@
     --drawer-bg-dark: rgba(0,0,0,0.88);
   }
 
-  body {
-    margin: 0;
-    padding: 20px;
-    font: var(--font);
-  }
+  body { margin:0; padding:20px; font:var(--font); }
 
   h1 {
-    text-align: center;
-    margin: 0 0 20px 0;
-    font-weight: 700;
-    font-size: 36px;
+    text-align:center;
+    margin:0 0 20px 0;
+    font-weight:700;
+    font-size:36px;
   }
   @media(max-width:700px){
-    h1 {
-      font-size: 56px;
-      margin-top: 10px;
-      margin-bottom: 30px;
-      line-height: 1.0;
-    }
+    h1{ font-size:56px; margin-top:10px; margin-bottom:30px; }
   }
 
+  /* Categories */
   #categories {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 28px;
-    padding: 0;
-    list-style: none;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:16px;
+    margin-bottom:28px;
+    padding:0;
+    list-style:none;
   }
-
   #categories li {
-    cursor: pointer;
-    opacity: .75;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 18px;
-    transition: .2s;
+    cursor:pointer;
+    opacity:.75;
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:18px;
+    transition:.2s;
   }
-
   #categories li:hover {
-    opacity: 1;
-    font-weight: 600;
-    background: rgba(0,0,0,0.1);
+    opacity:1; font-weight:600;
+    background:rgba(0,0,0,0.1);
+  }
+  @media(prefers-color-scheme:dark){
+    #categories li:hover { background:rgba(255,255,255,0.1); }
   }
 
-  .gallery {
-    column-count: 3;
-    column-gap: 16px;
-  }
-  @media(max-width:900px){ .gallery { column-count:2; } }
-  @media(max-width:700px){
-    .gallery {
-      column-count: 1 !important;
-      column-gap: 0;
-    }
-  }
+  /* Gallery */
+  .gallery{ column-count:3; column-gap:16px; }
+  @media(max-width:900px){ .gallery{ column-count:2; } }
+  @media(max-width:700px){ .gallery{ column-count:1!important; } }
 
   .item {
-    break-inside: avoid;
-    margin-bottom: 16px;
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: zoom-in;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeUp .6s forwards;
+    break-inside:avoid;
+    margin-bottom:16px;
+    border-radius:12px;
+    overflow:hidden;
+    cursor:zoom-in;
+    opacity:0;
+    transform:translateY(20px);
+    animation:fadeUp .6s forwards;
   }
-  @keyframes fadeUp { to { opacity:1; transform:translateY(0);} }
+
+  @keyframes fadeUp { to{opacity:1; transform:translateY(0);} }
 
   .item img {
-    width: 100%;
-    display: block;
-    opacity: 0;
-    transition: opacity .4s;
+    width:100%;
+    display:block;
+    opacity:0;
+    transition:opacity .4s;
   }
-  .loaded { opacity: 1 !important; }
+  .loaded{ opacity:1!important; }
 
+  /* Hover EXIF */
   #hoverInfo {
-    position: fixed;
-    padding: 14px 16px;
-    border-radius: 10px;
-    min-width: 220px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s;
-    z-index: 99999;
+    position:fixed;
+    padding:14px 16px;
+    border-radius:10px;
+    min-width:220px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s;
+    z-index:99999;
   }
-  @media(prefers-color-scheme:light){#hoverInfo{background:var(--panel-bg-light);color:#111}}
-  @media(prefers-color-scheme:dark){#hoverInfo{background:var(--panel-bg-dark);color:#fff}}
-  @media(max-width:700px){#hoverInfo{display:none!important}}
+  @media(prefers-color-scheme:light){ #hoverInfo{background:var(--panel-bg-light); color:#111;} }
+  @media(prefers-color-scheme:dark){ #hoverInfo{background:var(--panel-bg-dark); color:#fff;} }
+  @media(max-width:700px){ #hoverInfo{display:none!important;} }
 
+  /* Modal */
   #modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.88);
-    backdrop-filter: blur(4px);
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.88);
+    backdrop-filter:blur(4px);
     display:none;
     justify-content:center;
     align-items:center;
@@ -119,72 +106,59 @@
   }
 
   #modalContent {
-    width:95%;
-    height:90%;
-    display:flex;
+    width:95%; height:90%;
+    display:flex; overflow:hidden;
     border-radius:12px;
-    overflow:hidden;
   }
-  @media(max-width:700px){#modalContent{flex-direction:column}}
+  @media(max-width:700px){ #modalContent{flex-direction:column;} }
 
+  /* Image */
   #modalImg {
     flex:1;
-    width:100%;
-    height:100%;
+    width:100%; height:100%;
     object-fit:contain;
-    background:#000;
+    background:black;
     touch-action:none;
     will-change:transform;
-    transition:transform .25s ease-out;
   }
 
+  /* Desktop EXIF panel */
   #metaPanel {
-    width:32%;
-    padding:20px;
+    width:32%; padding:20px;
     overflow-y:auto;
     background:rgba(0,0,0,.65);
     color:white;
     position:relative;
   }
-  @media(max-width:700px){#metaPanel{display:none}}
+  @media(max-width:700px){ #metaPanel{display:none;} }
 
   #openFull {
-    position:absolute;
-    top:16px;
-    right:16px;
+    position:absolute; top:16px; right:16px;
     padding:6px 10px;
     background:rgba(255,255,255,.15);
-    border:none;
-    border-radius:6px;
-    color:white;
-    cursor:pointer;
-    opacity:.7;
+    border:none; border-radius:6px;
+    color:white; cursor:pointer; opacity:.7;
   }
-  #openFull:hover {opacity:1;}
+  #openFull:hover{opacity:1;}
 
   .exif-line { display:flex; gap:8px; margin-bottom:4px; }
 
-  #captionText {
-    margin-top:12px;
-    opacity:.9;
-    font-size:15px;
-  }
+  #captionText { margin-top:12px; opacity:.9; font-size:15px; }
 
+  /* Drawer */
   #drawer {
-    position: fixed;
+    position:fixed;
     left:0; right:0;
     bottom:-260px;
     height:260px;
     padding:16px 20px;
     border-radius:18px 18px 0 0;
-    backdrop-filter:blur(10px);
-    z-index:999999;
+    backdrop-filter:blur(10px); z-index:999999;
     display:none;
   }
-  @media(max-width:700px){#drawer{display:block}}
-  #drawerHandle {
-    width:48px;
-    height:5px;
+  @media(max-width:700px){ #drawer{display:block;} }
+  #drawerHandle{
+    width:48px; height:5px;
     background:rgba(255,255,255,.6);
     margin:0 auto 10px;
     border-radius:3px;
@@ -197,11 +171,10 @@
 <h1>photo dump</h1>
 
 <ul id="categories"></ul>
-
 <div id="hoverInfo"></div>
-
 <div class="gallery" id="gallery"></div>
 
+<!-- Modal -->
 <div id="modal">
   <div id="modalContent">
     <img id="modalImg">
@@ -213,6 +186,7 @@
   </div>
 </div>
 
+<!-- Drawer -->
 <div id="drawer">
   <div id="drawerHandle"></div>
   <div id="drawerContent"></div>
@@ -221,82 +195,89 @@
 <script src="https://cdn.jsdelivr.net/npm/exifreader/dist/exif-reader.min.js"></script>
 
 <script>
-/* DOM */
+
 const gallery=document.getElementById("gallery");
-const hoverInfo=document.getElementById("hoverInfo");
 const modal=document.getElementById("modal");
 const modalImg=document.getElementById("modalImg");
-const metaPanel=document.getElementById("metaPanel");
-const exifContent=document.getElementById("exifContent");
-const captionText=document.getElementById("captionText");
+const hoverInfo=document.getElementById("hoverInfo");
 const drawer=document.getElementById("drawer");
 const drawerContent=document.getElementById("drawerContent");
-const categoriesList=document.getElementById("categories");
+const exifContent=document.getElementById("exifContent");
+const captionText=document.getElementById("captionText");
 
-/* State */
 let imageList=[];
 let captions={};
 let currentIndex=0;
 
-/* PAN + ZOOM STATE (new) */
+/* PAN + ZOOM STATE */
 let scale=1;
-let offsetX=0;
+let offsetX=0;  
 let offsetY=0;
-let startX=0;
-let startY=0;
 let lastTouchX=0;
 let lastTouchY=0;
+let panStartX=0;
+let panStartY=0;
 let panning=false;
 
-/* Pinch */
+/* pinch */
 let isPinching=false;
 let lastDist=0;
 let pinchStartScale=1;
 
-/* Swipe for drawer */
+/* swipe */
 let swipeStartY=0;
 let drawerOpen=false;
 
-/* Load captions */
+/* suppression to prevent pinch->swipe-close */
+let suppressSwipe=false;
+
+/* ---------------------------
+   INITIAL FILES LOAD
+---------------------------- */
 async function loadCaptions(){
   try{ captions=await fetch("captions.json").then(r=>r.json()); }
   catch{ captions={}; }
 }
 
-/* Optimize */
-function optimize(url){return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=900&q=75&output=webp`;}
+function optimize(url){
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=900&q=75&output=webp`;
+}
 
-/* Scan GitHub */
 async function scanGitHub(path=""){
   const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}`;
   const r=await fetch(api);
   const files=await r.json();
+
   for(const f of files){
     if(f.type==="file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)){
       imageList.push({file:f.download_url,name:f.name,category:path||"all"});
     }
-    if(f.type==="dir"){ await scanGitHub(f.path.replace("images/","")); }
+    if(f.type==="dir") await scanGitHub(f.path.replace("images/",""));
   }
 }
 
-/* Build categories */
+/* ---------------------------
+   BUILD UI
+---------------------------- */
 function buildCategories(){
-  const cats=[...new Set(imageList.map(i=>i.category))];
-  cats.forEach(cat=>{
+  const categories=[...new Set(imageList.map(i=>i.category))];
+  categories.forEach(cat=>{
     const li=document.createElement("li");
     li.textContent=(cat==="all"?"All Images":cat);
     li.onclick=()=>filterCategory(cat);
-    categoriesList.appendChild(li);
+    document.getElementById("categories").appendChild(li);
   });
 }
+
 function filterCategory(cat){
   gallery.innerHTML="";
-  const list=(cat==="all"?imageList:imageList.filter(i=>i.category===cat));
+  const list=(cat==="all")?imageList:imageList.filter(i=>i.category===cat);
   list.forEach((img,i)=>buildItem(img,i));
 }
 
-/* Build gallery */
-function buildGallery(){ imageList.forEach((img,i)=>buildItem(img,i)); }
+function buildGallery(){
+  imageList.forEach((img,i)=>buildItem(img,i));
+}
 
 function buildItem(imgData,idx){
   const item=document.createElement("div");
@@ -307,7 +288,6 @@ function buildItem(imgData,idx){
   img.src=optimize(imgData.file);
   img.onload=()=>img.classList.add("loaded");
 
-  /* Desktop hover EXIF */
   if(window.innerWidth>700){
     item.onmouseenter=async(e)=>{
       const ex=await loadExif(imgData.file);
@@ -319,15 +299,19 @@ function buildItem(imgData,idx){
   }
 
   item.onclick=()=>openModal(idx);
+
   item.appendChild(img);
   gallery.appendChild(item);
 }
 
-/* EXIF utilities */
+/* ---------------------------
+   EXIF HELPERS
+---------------------------- */
 async function loadExif(file){
   const buf=await fetch(file).then(r=>r.arrayBuffer());
   return ExifReader.load(buf);
 }
+
 function exifHtml(ex){
   return [
     ["📷",ex.Model?.description],
@@ -336,15 +320,19 @@ function exifHtml(ex){
     ["⏱",ex.ExposureTime?.description],
     ["🎚",ex.ISOSpeedRatings?.description],
     ["📐",ex.FocalLength?.description]
-  ].filter(x=>x[1]).map(x=>`<div class="exif-line">${x[0]} ${x[1]}</div>`).join("");
+  ].filter(x=>x[1]).map(x=>`
+      <div class="exif-line">
+        ${x[0]} ${x[1]}
+      </div>
+  `).join("");
 }
+
 function getCaption(file,name,ex){
   if(captions[name]) return captions[name];
   if(ex["ImageDescription"]?.description) return ex["ImageDescription"].description;
-  return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g," ");
+  return name.replace(/\.[^/.]+$/,"").replace(/[_-]/g," ");
 }
 
-/* Hover panel */
 function positionHoverPanel(img){
   const r=img.getBoundingClientRect();
   const w=hoverInfo.offsetWidth+20;
@@ -352,7 +340,9 @@ function positionHoverPanel(img){
   hoverInfo.style.top=r.top+"px";
 }
 
-/* Open modal */
+/* ---------------------------
+   OPEN MODAL
+---------------------------- */
 async function openModal(i){
   currentIndex=i;
 
@@ -360,7 +350,7 @@ async function openModal(i){
   modal.style.display="flex";
   modalImg.src=file;
 
-  /* Reset zoom + pan */
+  /* reset transform */
   scale=1;
   offsetX=0;
   offsetY=0;
@@ -373,15 +363,16 @@ async function openModal(i){
     exifContent.innerHTML=exifHtml(ex);
     captionText.textContent=cap;
   } else {
-    drawerContent.innerHTML=exifHtml(ex)+`<div style="opacity:.75;margin-top:12px">${cap}</div>`;
+    drawerContent.innerHTML=exifHtml(ex)+`<div style="margin-top:12px;opacity:.75;">${cap}</div>`;
   }
 
   hoverInfo.style.opacity=0;
-
   document.getElementById("openFull").onclick=()=>window.open(file,"_blank");
 }
 
-/* Close modal */
+/* ---------------------------
+   CLOSE MODAL
+---------------------------- */
 function closeModal(){
   modal.style.display="none";
   closeDrawer();
@@ -403,15 +394,20 @@ document.addEventListener("keydown",e=>{
   if(e.key==="ArrowLeft" && currentIndex>0) openModal(currentIndex-1);
 });
 
-/* MOBILE PINCH */
+/* ---------------------------
+   MOBILE PINCH + PAN
+---------------------------- */
 modalImg.addEventListener("touchstart",e=>{
+  suppressSwipe=false;
+
   if(e.touches.length===2){
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
     lastDist=Math.sqrt(dx*dx+dy*dy);
     pinchStartScale=scale;
     isPinching=true;
-  } else if(e.touches.length===1 && scale>1){
+  }
+  else if(e.touches.length===1 && scale>1){
     lastTouchX=e.touches[0].clientX;
     lastTouchY=e.touches[0].clientY;
     panning=true;
@@ -421,10 +417,13 @@ modalImg.addEventListener("touchstart",e=>{
 modalImg.addEventListener("touchmove",e=>{
   if(e.touches.length===2){
     e.preventDefault();
+
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
     const dist=Math.sqrt(dx*dx+dy*dy);
+
     scale=Math.min(2,Math.max(1,pinchStartScale*(dist/lastDist)));
+    applySoftBounds();
     applyTransform();
   }
 
@@ -432,11 +431,14 @@ modalImg.addEventListener("touchmove",e=>{
     e.preventDefault();
     const x=e.touches[0].clientX;
     const y=e.touches[0].clientY;
+
     offsetX += (x-lastTouchX);
     offsetY += (y-lastTouchY);
+
     lastTouchX=x;
     lastTouchY=y;
-    applySoftBoundaries();
+
+    applySoftBounds();
     applyTransform();
   }
 },{passive:false});
@@ -444,12 +446,26 @@ modalImg.addEventListener("touchmove",e=>{
 modalImg.addEventListener("touchend",e=>{
   if(isPinching && e.touches.length<2){
     isPinching=false;
-    if(scale===1) snapBackMobile();
+
+    /* Prevent swipe-close after pinch */
+    suppressSwipe=true;
+    setTimeout(()=>suppressSwipe=false,80);
+
+    if(scale<=1.02){
+      scale=1;
+      offsetX=0;
+      offsetY=0;
+      modalImg.style.transition="transform .25s ease-out";
+      applyTransform();
+      setTimeout(()=>modalImg.style.transition="",250);
+    }
   }
   panning=false;
 });
 
-/* Drawer swipe */
+/* ---------------------------
+   MOBILE SWIPE FOR DRAWER
+---------------------------- */
 modalImg.addEventListener("touchstart",e=>{
   if(scale===1 && e.touches.length===1){
     swipeStartY=e.touches[0].clientY;
@@ -458,73 +474,86 @@ modalImg.addEventListener("touchstart",e=>{
 
 modalImg.addEventListener("touchend",e=>{
   if(scale!==1) return;
+  if(suppressSwipe) return;
+
   const dy=e.changedTouches[0].clientY-swipeStartY;
-  if(dy < -60) openDrawer();
-  if(dy > 60){
+
+  if(dy<-60) openDrawer();
+  if(dy>60){
     if(drawerOpen) closeDrawer();
     else closeModal();
   }
 });
 
-/* Drawer open/close */
-function openDrawer(){ drawer.style.bottom="0px"; drawerOpen=true; }
-function closeDrawer(){ drawer.style.bottom="-260px"; drawerOpen=false; }
+function openDrawer(){
+  drawer.style.bottom="0px";
+  drawerOpen=true;
+}
+function closeDrawer(){
+  drawer.style.bottom="-260px";
+  drawerOpen=false;
+}
 
-/* DESKTOP PANNING */
+/* ---------------------------
+   DESKTOP PANNING
+---------------------------- */
 modalImg.addEventListener("mousedown",e=>{
   if(window.innerWidth<=700) return;
   if(scale===1) return;
+
   panning=true;
-  startX=e.clientX;
-  startY=e.clientY;
+  panStartX=e.clientX;
+  panStartY=e.clientY;
 });
 
 document.addEventListener("mousemove",e=>{
   if(panning && window.innerWidth>700){
-    offsetX += (e.clientX-startX);
-    offsetY += (e.clientY-startY);
-    startX=e.clientX;
-    startY=e.clientY;
-    applySoftBoundaries();
+    offsetX += (e.clientX-panStartX);
+    offsetY += (e.clientY-panStartY);
+    panStartX=e.clientX;
+    panStartY=e.clientY;
+
+    applySoftBounds();
     applyTransform();
   }
 });
-
 document.addEventListener("mouseup",()=>{panning=false});
 
-/* DESKTOP ZOOM */
+/* ---------------------------
+   DESKTOP ZOOM — vertical wheel ONLY
+---------------------------- */
 modalImg.addEventListener("wheel",e=>{
   if(window.innerWidth<=700) return;
+
+  /* If trackpad horizontal scroll, ignore */
+  if(Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
   e.preventDefault();
-  scale=Math.max(1,scale+(e.deltaY<0?0.1:-0.1));
-  applySoftBoundaries();
+
+  scale = Math.max(1, scale+(e.deltaY<0?0.1:-0.1));
+
+  applySoftBounds();
   applyTransform();
 },{passive:false});
 
-/* Apply transform */
+/* ---------------------------
+   TRANSFORM + BOUNDARIES
+---------------------------- */
 function applyTransform(){
   modalImg.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
 }
 
-/* Soft boundaries */
-function applySoftBoundaries(){
-  const maxX=modalImg.clientWidth*(scale-1)/2;
-  const maxY=modalImg.clientHeight*(scale-1)/2;
+function applySoftBounds(){
+  const maxX = modalImg.clientWidth*(scale-1)/2;
+  const maxY = modalImg.clientHeight*(scale-1)/2;
+
   offsetX = Math.max(-maxX*1.2, Math.min(maxX*1.2, offsetX));
   offsetY = Math.max(-maxY*1.2, Math.min(maxY*1.2, offsetY));
 }
 
-/* Mobile snap-back */
-function snapBackMobile(){
-  scale=1;
-  offsetX=0;
-  offsetY=0;
-  modalImg.style.transition="transform .25s ease-out";
-  applyTransform();
-  setTimeout(()=>modalImg.style.transition="",300);
-}
-
-/* Init */
+/* ---------------------------
+   INIT
+---------------------------- */
 (async()=>{
   await loadCaptions();
   await scanGitHub();
