@@ -20,7 +20,6 @@
     margin: 0;
     padding: 20px;
     font: var(--font);
-    transition: background .3s, color .3s;
   }
 
   h1 {
@@ -39,181 +38,174 @@
     list-style: none;
     padding: 0;
     margin-bottom: 25px;
-    font-size: 16px;
   }
 
   #categories li {
     cursor: pointer;
-    opacity: 0.75;
-    transition: 0.2s;
+    opacity: .75;
     padding: 6px 12px;
     border-radius: 6px;
+    transition: .2s;
   }
   #categories li:hover {
     opacity: 1;
     font-weight: 600;
     background: rgba(0,0,0,0.1);
   }
-  @media (prefers-color-scheme: dark) {
-    #categories li:hover { background: rgba(255,255,255,0.1); }
-  }
 
-  /* Masonry gallery */
+  /* Masonry */
   .gallery {
     column-count: 3;
     column-gap: 16px;
   }
-  @media (max-width: 900px) { .gallery { column-count: 2; } }
-  @media (max-width: 600px) { .gallery { column-count: 1; } }
+  @media(max-width:900px){.gallery{column-count:2}}
+  @media(max-width:600px){.gallery{column-count:1}}
 
   .item {
     break-inside: avoid;
     margin-bottom: 16px;
-    cursor: zoom-in;
     border-radius: 12px;
     overflow: hidden;
+    cursor: zoom-in;
     opacity: 0;
     transform: translateY(20px);
-    animation: fadeUp .6s forwards ease;
+    animation: fadeUp .6s forwards;
   }
-  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp {
+    to {opacity:1; transform:translateY(0);}
+  }
 
   .item img {
     width: 100%;
-    display: block;
     opacity: 0;
     transition: opacity .4s;
   }
-  .item img.loaded { opacity: 1; }
+  .loaded { opacity: 1 !important; }
 
-  /* Hover EXIF panel (desktop only) */
+  /* Hover EXIF (desktop only) */
   #hoverInfo {
     position: fixed;
     padding: 14px 16px;
-    min-width: 240px;
+    min-width: 220px;
     border-radius: 10px;
     opacity: 0;
-    white-space: pre-line;
-    transition: opacity .25s ease;
+    transition: opacity .25s;
     pointer-events: none;
-    font-size: 15px;
     z-index: 99999;
   }
-  @media (prefers-color-scheme: light) {
-    #hoverInfo { background: var(--panel-bg-light); color:#111; }
-  }
-  @media (prefers-color-scheme: dark) {
-    #hoverInfo { background: var(--panel-bg-dark); color:#fff; }
-  }
-  @media (max-width: 700px) {
-    #hoverInfo { display: none !important; }
-  }
+  @media (prefers-color-scheme:light){#hoverInfo{background:var(--panel-bg-light); color:#111}}
+  @media (prefers-color-scheme:dark){#hoverInfo{background:var(--panel-bg-dark); color:#fff}}
+  @media(max-width:700px){#hoverInfo{display:none!important}}
 
   /* Modal */
   #modal {
     position: fixed;
     inset: 0;
+    background: rgba(0,0,0,.88);
+    backdrop-filter: blur(4px);
     display: none;
-    background: rgba(0,0,0,0.88);
-    align-items: center;
     justify-content: center;
+    align-items: center;
     overflow: hidden;
     z-index: 9999;
-    backdrop-filter: blur(4px);
   }
 
   #modalContent {
-    position: relative;
     width: 95%;
     height: 90%;
     display: flex;
     border-radius: 12px;
     overflow: hidden;
   }
-  @media (max-width:650px) {
-    #modalContent {
-      flex-direction: column;
-      height: 92%;
-    }
-  }
+  @media(max-width:650px){#modalContent{flex-direction:column}}
 
   #modalImg {
-    flex: 1;
-    width: 100%;
-    height: 100%;
+    flex:1;
     object-fit: contain;
-    background: #000;
-    touch-action: none;
-    transition: transform .18s ease-out;
+    background:#000;
+    touch-action:none;
+    transition:transform .18s ease-out;
   }
 
-  /* Desktop EXIF panel */
+  /* Desktop EXIF Panel */
   #metaPanel {
     width: 32%;
-    padding: 20px;
-    overflow-y: auto;
-    white-space: pre-line;
-    font-size: 15px;
-    background: rgba(0,0,0,0.65);
-    color: white;
+    padding:20px;
+    overflow-y:auto;
+    background:rgba(0,0,0,.65);
+    color:white;
+    position: relative;
+    transition: opacity .25s;
   }
-  @media (max-width: 700px) {
-    #metaPanel { display: none !important; }
+  @media(max-width:700px){#metaPanel{display:none}}
+
+  /* Minimal "open full" icon button */
+  #openFull {
+    position:absolute;
+    top:16px;
+    right:16px;
+    background:rgba(255,255,255,0.15);
+    border:none;
+    color:white;
+    padding:6px 9px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+    opacity:.7;
+    transition:.2s;
+  }
+  #openFull:hover {opacity:1;}
+
+  /* Hide EXIF panel & caption during zoom */
+  .zoom-hidden { opacity: 0 !important; }
+
+  /* Caption */
+  #captionText {
+    margin-top:12px;
+    opacity:.9;
+    font-size:15px;
+    transition:opacity .25s;
   }
 
   /* Mobile EXIF Drawer */
   #drawer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: -260px;
-    height: 260px;
-    border-radius: 18px 18px 0 0;
-    padding: 16px 20px;
-    z-index: 999999;
-    transition: bottom .35s ease;
-    backdrop-filter: blur(10px);
-    display: none;
+    position:fixed;
+    left:0; right:0;
+    bottom:-260px;
+    height:260px;
+    padding:16px 20px;
+    border-radius:18px 18px 0 0;
+    backdrop-filter:blur(10px);
+    z-index:999999;
+    display:none;
   }
-  @media (max-width:700px) {
-    #drawer { display: block; }
-  }
-  @media (prefers-color-scheme: light) {
-    #drawer { background: var(--drawer-bg-light); color:#111; }
-  }
-  @media (prefers-color-scheme: dark) {
-    #drawer { background: var(--drawer-bg-dark); color:#fff; }
-  }
+  @media(max-width:700px){#drawer{display:block}}
+  @media(prefers-color-scheme:light){#drawer{background:var(--drawer-bg-light); color:#111}}
+  @media(prefers-color-scheme:dark){#drawer{background:var(--drawer-bg-dark); color:#fff}}
 
   #drawerHandle {
-    width: 48px;
-    height: 5px;
-    background: rgba(255,255,255,0.6);
-    margin: 0 auto 10px auto;
-    border-radius: 3px;
+    width:48px;
+    height:5px;
+    background:rgba(255,255,255,.6);
+    margin:0 auto 10px;
+    border-radius:3px;
   }
 
+  /* Zoom level bubble */
   #zoomLevel {
-    position: fixed;
-    bottom: 25px;
-    left: 25px;
-    background: rgba(0,0,0,0.5);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    display: none;
+    position:fixed;
+    bottom:25px; left:25px;
+    background:rgba(0,0,0,.5);
+    color:white;
+    padding:6px 12px;
+    border-radius:6px;
+    font-size:14px;
+    display:none;
   }
 
-  .exif-line {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 4px;
-    align-items:center;
-  }
+  .exif-line{display:flex; gap:8px; margin-bottom:4px;}
 </style>
 </head>
-
 <body>
 
 <h1>photo dump</h1>
@@ -222,29 +214,20 @@
 <div id="hoverInfo"></div>
 <div class="gallery" id="gallery"></div>
 
+<!-- Modal -->
 <div id="modal">
   <div id="modalContent">
-    <img id="modalImg" src="">
-    <div id="metaPanel">
-      <button id="openFull" style="
-        margin-bottom: 15px;
-        padding: 8px 12px;
-        background: var(--accent);
-        border: none;
-        border-radius: 6px;
-        color: white;
-        cursor: pointer;
-        font-size: 14px;">
-        Open Full Resolution
-      </button>
+    <img id="modalImg">
 
+    <div id="metaPanel">
+      <button id="openFull">full</button>
       <div id="exifContent"></div>
-      <div id="captionText" style="margin-top: 15px; opacity:.9;"></div>
+      <div id="captionText"></div>
     </div>
   </div>
 </div>
 
-<!-- Mobile EXIF Drawer -->
+<!-- Mobile Drawer -->
 <div id="drawer">
   <div id="drawerHandle"></div>
   <div id="drawerContent"></div>
@@ -264,6 +247,8 @@ const gallery = document.getElementById("gallery");
 const hoverInfo = document.getElementById("hoverInfo");
 const modal = document.getElementById("modal");
 const modalImg = document.getElementById("modalImg");
+const metaPanel = document.getElementById("metaPanel");
+const captionText = document.getElementById("captionText");
 const drawer = document.getElementById("drawer");
 const drawerContent = document.getElementById("drawerContent");
 const drawerHandle = document.getElementById("drawerHandle");
@@ -272,6 +257,7 @@ const categoriesList = document.getElementById("categories");
 
 /* STATE */
 let imageList = [];
+let captions = {}; // from captions.json
 let currentIndex = 0;
 let zoom = 1;
 let panX = 0;
@@ -280,33 +266,44 @@ let panY = 0;
 /* Drawer physics */
 let drawerY = -260;
 let drawerVelocity = 0;
-let drawerLastMoveTime = 0;
 let drawerLastY = 0;
+let drawerLastMoveTime = 0;
 let drawerAnimating = false;
 let drawerOpen = false;
-const drawerHeight = 260;
-const drawerClosedY = -drawerHeight;
+
+const drawerClosedY = -260;
 const drawerOpenY = 0;
 
 /* Touch/pinch */
 let lastTouchDistance = 0;
 let doubleTapTime = 0;
 
-/* ---- IMAGE OPTIMIZER ---- */
-function optimize(url, width=900, quality=75) {
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${width}&q=${quality}&output=webp`;
+/* Load captions.json */
+async function loadCaptions() {
+  try {
+    const r = await fetch("captions.json");
+    captions = await r.json();
+  } catch(e) {
+    captions = {};
+  }
 }
 
-/* ---- GITHUB AUTO-DETECT ---- */
-async function scanGitHub(path="") {
-  const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
-  const res = await fetch(url);
-  const files = await res.json();
+/* Image Optimizer (weserv.nl) */
+function optimize(url, w=900, q=75) {
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${w}&q=${q}&output=webp`;
+}
+
+/* Auto-detect GitHub repo images */
+async function scanGitHub(path = "") {
+  const api = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
+  const r = await fetch(api);
+  const files = await r.json();
 
   for (let f of files) {
     if (f.type === "file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)) {
       imageList.push({
         file: f.download_url,
+        name: f.name,
         category: path || "all"
       });
     }
@@ -317,12 +314,13 @@ async function scanGitHub(path="") {
 }
 
 async function init() {
+  await loadCaptions();
   await scanGitHub();
   buildCategories();
   buildGallery();
 }
 
-/* ---- Categories ---- */
+/* Categories */
 function buildCategories() {
   const cats = [...new Set(imageList.map(i => i.category))];
   cats.forEach(cat => {
@@ -335,13 +333,15 @@ function buildCategories() {
 
 function filterCategory(cat) {
   gallery.innerHTML = "";
-  const filtered = cat === "all" ? imageList : imageList.filter(i => i.category === cat);
-  filtered.forEach((img, idx) => buildItem(img, idx));
+  const imgs = cat === "all"
+    ? imageList
+    : imageList.filter(i => i.category === cat);
+  imgs.forEach((img, i) => buildItem(img, i));
 }
 
-/* ---- Gallery ---- */
+/* Build gallery */
 function buildGallery() {
-  imageList.forEach((img, idx) => buildItem(img, idx));
+  imageList.forEach((img, i) => buildItem(img, i));
 }
 
 function buildItem(imgData, idx) {
@@ -353,13 +353,14 @@ function buildItem(imgData, idx) {
 
   img.src = optimize(imgData.file, 900, 70);
   img.dataset.full = imgData.file;
+  img.dataset.name = imgData.name;
 
   img.onload = () => img.classList.add("loaded");
   item.appendChild(img);
 
-  // Desktop hover EXIF
+  /* Desktop hover EXIF */
   if (window.innerWidth > 700) {
-    item.onmouseenter = (e) => {
+    item.onmouseenter = e => {
       showHoverInfo(imgData.file);
       positionHoverPanel(e.target);
     };
@@ -367,18 +368,17 @@ function buildItem(imgData, idx) {
   }
 
   item.onclick = () => openModal(idx);
-
   gallery.appendChild(item);
 }
 
-/* ---- EXIF ---- */
+/* EXIF */
 async function loadExif(file) {
-  const buf = await fetch(file).then(r=>r.arrayBuffer());
-  return ExifReader.load(buf);
+  const b = await fetch(file).then(r=>r.arrayBuffer());
+  return ExifReader.load(b);
 }
 
 function exifHtml(exif) {
-  const items = [
+  const list = [
     ["📷", exif.Model?.description],
     ["🔍", exif.LensModel?.description],
     ["🔆", exif.FNumber?.description],
@@ -386,19 +386,24 @@ function exifHtml(exif) {
     ["🎚", exif.ISOSpeedRatings?.description],
     ["📐", exif.FocalLength?.description]
   ];
-  return items.filter(x=>x[1]).map(x=>`<div class="exif-line">${x[0]} ${x[1]}</div>`).join("");
+  return list.filter(x=>x[1])
+             .map(x=>`<div class="exif-line">${x[0]} ${x[1]}</div>`)
+             .join("");
 }
 
-function captionFrom(file, exif) {
-  const d = exif["ImageDescription"]?.description;
-  if (d) return d.trim();
+/* Caption logic */
+function getCaption(file, name, exif) {
+  const fname = name || file.split("/").pop();
 
-  let n = file.split("/").pop().replace(/\.[^/.]+$/, "");
-  n = n.replace(/[-_]/g, " ");
-  return n.replace(/\b\w/g, c => c.toUpperCase());
+  if (captions[fname]) return captions[fname];
+
+  if (exif["ImageDescription"]?.description)
+    return exif["ImageDescription"].description;
+
+  return fname.replace(/\.[^/.]+$/,'').replace(/[_-]/g,' ');
 }
 
-/* Hover EXIF */
+/* Desktop hover EXIF */
 async function showHoverInfo(file) {
   if (window.innerWidth <= 700) return;
   const exif = await loadExif(file);
@@ -406,190 +411,173 @@ async function showHoverInfo(file) {
   hoverInfo.style.opacity = 1;
 }
 
-function positionHoverPanel(imgEl) {
-  if (window.innerWidth <= 700) return;
-  const rect = imgEl.getBoundingClientRect();
+function positionHoverPanel(img) {
+  const r = img.getBoundingClientRect();
   const w = hoverInfo.offsetWidth + 20;
-
   hoverInfo.style.left =
-    rect.right + w > window.innerWidth
-    ? (rect.left - w) + "px"
-    : (rect.right + 20) + "px";
-
-  hoverInfo.style.top = rect.top + "px";
+    r.right + w > window.innerWidth
+    ? (r.left - w)+"px"
+    : (r.right + 20)+"px";
+  hoverInfo.style.top = r.top+"px";
 }
 
-/* ---- Modal ---- */
+/* Modal */
 async function openModal(i) {
   currentIndex = i;
-  const file = imageList[i].file;
+  const { file, name } = imageList[i];
 
-  modal.style.display = "flex";
-  modalImg.style.opacity = 0;
-
-  modalImg.src = file; // FULL RES
+  modal.style.display="flex";
+  modalImg.style.opacity=0;
+  modalImg.src = file;  // FULL RES
 
   const exif = await loadExif(file);
+  const caption = getCaption(file, name, exif);
 
   if (window.innerWidth > 700) {
     document.getElementById("exifContent").innerHTML = exifHtml(exif);
-    document.getElementById("captionText").innerText = captionFrom(file, exif);
+    captionText.textContent = caption;
   }
 
   if (window.innerWidth <= 700) {
     drawerContent.innerHTML =
       exifHtml(exif) +
-      `<div style="margin-top:12px; opacity:.75;">${captionFrom(file, exif)}</div>`;
+      `<div style="margin-top:12px;opacity:.75;">${caption}</div>`;
   }
 
-  document.getElementById("openFull").onclick = () => window.open(file, "_blank");
+  document.getElementById("openFull").onclick = () =>
+    window.open(file, "_blank");
 
   resetZoomPan();
-
   closeDrawer();
   drawerY = drawerClosedY;
-  drawer.style.bottom = drawerClosedY + "px";
 
   setTimeout(()=> modalImg.style.opacity=1, 60);
 }
 
-/* Close modal */
 modal.onclick = e => { if (e.target === modal) modal.style.display="none"; };
 
-/* ---- Drawer Physics ---- */
-let draggingDrawer = false;
+/* Drawer physics */
+let draggingDrawer=false;
 
-drawer.addEventListener("touchstart", e => {
-  draggingDrawer = true;
-  drawerLastY = e.touches[0].clientY;
-  drawerLastMoveTime = Date.now();
-  drawerVelocity = 0;
+drawer.addEventListener("touchstart", e=>{
+  draggingDrawer=true;
+  drawerLastY=e.touches[0].clientY;
+  drawerLastMoveTime=Date.now();
 });
 
-drawer.addEventListener("touchmove", e => {
+drawer.addEventListener("touchmove", e=>{
   if (!draggingDrawer) return;
-  const y = e.touches[0].clientY;
-  const dy = y - drawerLastY;
+  const y=e.touches[0].clientY;
+  const dy=y-drawerLastY;
 
-  const now = Date.now();
-  drawerVelocity = (dy / (now - drawerLastMoveTime)) * 18;
-  drawerLastMoveTime = now;
-  drawerLastY = y;
+  const now=Date.now();
+  drawerVelocity=(dy/(now-drawerLastMoveTime))*18;
+  drawerLastMoveTime=now;
+  drawerLastY=y;
 
-  drawerY += dy;
+  drawerY+=dy;
+  if (drawerY>60) drawerY=60;
+  if (drawerY<drawerClosedY-60) drawerY=drawerClosedY-60;
 
-  if (drawerY > 60) drawerY = 60;
-  if (drawerY < drawerClosedY - 60) drawerY = drawerClosedY - 60;
+  drawer.style.bottom=drawerY+"px";
+},{passive:false});
 
-  drawer.style.bottom = `${drawerY}px`;
-}, { passive:false });
-
-drawer.addEventListener("touchend", () => {
-  draggingDrawer = false;
+drawer.addEventListener("touchend", ()=>{
+  draggingDrawer=false;
   animateDrawer();
 });
 
 function animateDrawer() {
   if (drawerAnimating) return;
-  drawerAnimating = true;
+  drawerAnimating=true;
 
-  const step = () => {
-    drawerVelocity *= 0.9;
-    drawerY += drawerVelocity;
+  const step = ()=>{
+    drawerVelocity*=0.9;
+    drawerY+=drawerVelocity;
 
-    if (drawerVelocity > 0 && drawerY < drawerOpenY - 40) {
-      drawerY = drawerOpenY;
-      drawerAnimating = false;
-      drawerOpen = true;
-      drawer.style.bottom = drawerOpenY + "px";
+    if (drawerVelocity>0 && drawerY<drawerOpenY-40) {
+      drawerY=drawerOpenY;
+      drawerAnimating=false;
+      drawerOpen=true;
+      drawer.style.bottom=drawerOpenY+"px";
       return;
     }
-    if (drawerVelocity < 0 && drawerY > drawerClosedY + 40) {
-      drawerY = drawerClosedY;
-      drawerAnimating = false;
-      drawerOpen = false;
-      drawer.style.bottom = drawerClosedY + "px";
+    if (drawerVelocity<0 && drawerY>drawerClosedY+40) {
+      drawerY=drawerClosedY;
+      drawerAnimating=false;
+      drawerOpen=false;
+      drawer.style.bottom=drawerClosedY+"px";
       return;
     }
 
-    drawer.style.bottom = `${drawerY}px`;
+    drawer.style.bottom=drawerY+"px";
 
-    if (Math.abs(drawerVelocity) > 0.3) {
+    if (Math.abs(drawerVelocity)>0.3) {
       requestAnimationFrame(step);
     } else {
-      if (drawerY > drawerClosedY / 2) {
-        drawerOpen = true;
-        drawerY = drawerOpenY;
+      if (drawerY>drawerClosedY/2) {
+        drawerOpen=true;
+        drawerY=drawerOpenY;
       } else {
-        drawerOpen = false;
-        drawerY = drawerClosedY;
+        drawerOpen=false;
+        drawerY=drawerClosedY;
       }
-      drawer.style.bottom = drawerY + "px";
-      drawerAnimating = false;
+      drawer.style.bottom=drawerY+"px";
+      drawerAnimating=false;
     }
   };
 
   requestAnimationFrame(step);
 }
 
-function closeDrawer() {
-  drawerOpen = false;
-  drawerY = drawerClosedY;
-  drawer.style.bottom = drawerClosedY + "px";
-}
+function closeDrawer(){drawerOpen=false;drawerY=drawerClosedY;drawer.style.bottom=drawerClosedY+"px"}
+function openDrawer(){drawerOpen=true;drawerY=drawerOpenY;drawer.style.bottom=drawerOpenY+"px"}
 
-function openDrawer() {
-  drawerOpen = true;
-  drawerY = drawerOpenY;
-  drawer.style.bottom = drawerOpenY + "px";
-}
+drawerHandle.onclick = ()=> drawerOpen?closeDrawer():openDrawer();
 
-drawerHandle.onclick = () => drawerOpen ? closeDrawer() : openDrawer();
-
-/* ---- Navigation ---- */
-document.onkeydown = e => {
-  if (modal.style.display !== "flex") return;
-  if (e.key === "Escape") modal.style.display="none";
-  if (e.key === "ArrowRight") openNext();
-  if (e.key === "ArrowLeft") openPrev();
+/* Desktop nav */
+document.onkeydown=e=>{
+  if (modal.style.display!=="flex") return;
+  if (e.key==="Escape") modal.style.display="none";
+  if (e.key==="ArrowRight") openNext();
+  if (e.key==="ArrowLeft") openPrev();
 };
 
-function openNext(){ if (currentIndex < imageList.length-1) openModal(currentIndex+1); }
-function openPrev(){ if (currentIndex > 0) openModal(currentIndex-1); }
+function openNext(){if (currentIndex<imageList.length-1) openModal(currentIndex+1);}
+function openPrev(){if (currentIndex>0) openModal(currentIndex-1);}
 
-/* ---- Zoom & Pan ---- */
-modalImg.onwheel = e => {
+/* --- ZOOM / PAN --- */
+modalImg.onwheel=e=>{
   e.preventDefault();
-  zoom = Math.max(1, zoom + (e.deltaY < 0 ? 0.15 : -0.15));
+  zoom=Math.max(1, zoom+(e.deltaY<0?0.15:-0.15));
   updateZoomPan();
 };
 
-modalImg.onmousedown = e => {
+modalImg.onmousedown=e=>{
   e.preventDefault();
   let sx=e.clientX, sy=e.clientY;
 
   function move(ev){
-    panX += (ev.clientX - sx) / zoom;
-    panY += (ev.clientY - sy) / zoom;
+    panX+=(ev.clientX-sx)/zoom;
+    panY+=(ev.clientY-sy)/zoom;
     sx=ev.clientX; sy=ev.clientY;
     updateZoomPan();
   }
   function stop(){
-    document.removeEventListener("mousemove", move);
-    document.removeEventListener("mouseup", stop);
+    document.removeEventListener("mousemove",move);
+    document.removeEventListener("mouseup",stop);
   }
-  document.addEventListener("mousemove", move);
-  document.addEventListener("mouseup", stop);
+  document.addEventListener("mousemove",move);
+  document.addEventListener("mouseup",stop);
 };
 
 /* Pinch zoom */
-modalImg.addEventListener("touchmove", function(e){
-  if (e.touches.length === 2) {
+modalImg.addEventListener("touchmove", e=>{
+  if (e.touches.length===2) {
     e.preventDefault();
     const dx=e.touches[0].clientX-e.touches[1].clientX;
     const dy=e.touches[0].clientY-e.touches[1].clientY;
     const dist=Math.sqrt(dx*dx+dy*dy);
-
     if (lastTouchDistance) {
       zoom=Math.max(1, zoom*(dist/lastTouchDistance));
       updateZoomPan();
@@ -597,40 +585,64 @@ modalImg.addEventListener("touchmove", function(e){
     lastTouchDistance=dist;
   }
 },{passive:false});
-modalImg.addEventListener("touchend",()=> lastTouchDistance=0);
+
+modalImg.addEventListener("touchend",()=>lastTouchDistance=0);
 
 /* Double-tap zoom */
-modalImg.addEventListener("touchend", e => {
-  const now = Date.now();
-  if (now - doubleTapTime < 280) {
-    zoom = zoom === 1 ? 2 : 1;
-    panX=0; panY=0;
+modalImg.addEventListener("touchend", e=>{
+  const now=Date.now();
+  if (now-doubleTapTime<250) {
+    zoom = zoom===1 ? 2 : 1;
+    panX=0;panY=0;
     updateZoomPan();
   }
-  doubleTapTime = now;
+  doubleTapTime=now;
 });
 
-/* Swipe navigation */
-let touchStartX=0;
-modalImg.addEventListener("touchstart", e => touchStartX = e.touches[0].clientX);
-modalImg.addEventListener("touchend", e => {
-  const end=e.changedTouches[0].clientX;
-  if (end - touchStartX > 60) openPrev();
-  if (touchStartX - end > 60) openNext();
+/* Disable swipe navigation if zoomed */
+let touchStartX=0, touchStartY=0;
+
+modalImg.addEventListener("touchstart", e=>{
+  touchStartX=e.touches[0].clientX;
+  touchStartY=e.touches[0].clientY;
 });
 
-/* Zoom updates */
+modalImg.addEventListener("touchend", e=>{
+  const dx=e.changedTouches[0].clientX - touchStartX;
+  const dy=e.changedTouches[0].clientY - touchStartY;
+
+  /* Swipe-down to close */
+  if (dy>60 && zoom===1) {
+    modal.style.display="none";
+    return;
+  }
+
+  /* Disable horizontal swipe if zoomed */
+  if (zoom>1) return;
+
+  if (dx>60) openPrev();
+  if (dx<-60) openNext();
+});
+
+/* Update zoom */
 function resetZoomPan(){
   zoom=1;panX=0;panY=0;
   updateZoomPan();
 }
+
 function updateZoomPan(){
-  modalImg.style.transform = `scale(${zoom}) translate(${panX}px, ${panY}px)`;
-  zoomLevelDisplay.innerText = Math.round(zoom*100)+"%";
-  zoomLevelDisplay.style.display = zoom === 1 ? "none" : "block";
+  modalImg.style.transform=`scale(${zoom}) translate(${panX}px, ${panY}px)`;
+
+  /* Hide caption + EXIF panel when zoomed */
+  if (window.innerWidth>700) {
+    if (zoom>1) metaPanel.classList.add("zoom-hidden"), captionText.classList.add("zoom-hidden");
+    else metaPanel.classList.remove("zoom-hidden"), captionText.classList.remove("zoom-hidden");
+  }
+
+  zoomLevelDisplay.innerText=Math.round(zoom*100)+"%";
+  zoomLevelDisplay.style.display=zoom===1?"none":"block";
 }
 
-/* Initialize */
 init();
 </script>
 
