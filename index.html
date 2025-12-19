@@ -130,9 +130,11 @@
     border-radius: 12px;
     overflow: hidden;
   }
-
   @media (max-width:650px) {
-    #modalContent { flex-direction: column; }
+    #modalContent {
+      flex-direction: column;
+      height: 92%;
+    }
   }
 
   #modalImg {
@@ -223,7 +225,6 @@
 <div id="modal">
   <div id="modalContent">
     <img id="modalImg" src="">
-    <!-- Desktop EXIF Panel -->
     <div id="metaPanel">
       <button id="openFull" style="
         margin-bottom: 15px;
@@ -233,8 +234,9 @@
         border-radius: 6px;
         color: white;
         cursor: pointer;
-        font-size: 14px;
-      ">Open Full Resolution</button>
+        font-size: 14px;">
+        Open Full Resolution
+      </button>
 
       <div id="exifContent"></div>
       <div id="captionText" style="margin-top: 15px; opacity:.9;"></div>
@@ -262,7 +264,6 @@ const gallery = document.getElementById("gallery");
 const hoverInfo = document.getElementById("hoverInfo");
 const modal = document.getElementById("modal");
 const modalImg = document.getElementById("modalImg");
-const metaPanel = document.getElementById("metaPanel");
 const drawer = document.getElementById("drawer");
 const drawerContent = document.getElementById("drawerContent");
 const drawerHandle = document.getElementById("drawerHandle");
@@ -291,12 +292,12 @@ const drawerOpenY = 0;
 let lastTouchDistance = 0;
 let doubleTapTime = 0;
 
-/* VERGEL OPTIMIZER */
-function optimize(url, width=1200, quality=75) {
-  return `/_next/image?url=${encodeURIComponent(url)}&w=${width}&q=${quality}`;
+/* ---- IMAGE OPTIMIZER ---- */
+function optimize(url, width=900, quality=75) {
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${width}&q=${quality}&output=webp`;
 }
 
-/* AUTO DETECT IMAGES */
+/* ---- GITHUB AUTO-DETECT ---- */
 async function scanGitHub(path="") {
   const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
   const res = await fetch(url);
@@ -321,7 +322,7 @@ async function init() {
   buildGallery();
 }
 
-/* CATEGORIES */
+/* ---- Categories ---- */
 function buildCategories() {
   const cats = [...new Set(imageList.map(i => i.category))];
   cats.forEach(cat => {
@@ -338,7 +339,7 @@ function filterCategory(cat) {
   filtered.forEach((img, idx) => buildItem(img, idx));
 }
 
-/* GALLERY */
+/* ---- Gallery ---- */
 function buildGallery() {
   imageList.forEach((img, idx) => buildItem(img, idx));
 }
@@ -350,14 +351,13 @@ function buildItem(imgData, idx) {
   const img = document.createElement("img");
   img.loading = "lazy";
 
-  /* Optimized thumbnail */
   img.src = optimize(imgData.file, 900, 70);
   img.dataset.full = imgData.file;
 
   img.onload = () => img.classList.add("loaded");
   item.appendChild(img);
 
-  /* Desktop hover EXIF */
+  // Desktop hover EXIF
   if (window.innerWidth > 700) {
     item.onmouseenter = (e) => {
       showHoverInfo(imgData.file);
@@ -367,10 +367,11 @@ function buildItem(imgData, idx) {
   }
 
   item.onclick = () => openModal(idx);
+
   gallery.appendChild(item);
 }
 
-/* EXIF */
+/* ---- EXIF ---- */
 async function loadExif(file) {
   const buf = await fetch(file).then(r=>r.arrayBuffer());
   return ExifReader.load(buf);
@@ -397,7 +398,7 @@ function captionFrom(file, exif) {
   return n.replace(/\b\w/g, c => c.toUpperCase());
 }
 
-/* Hover panel desktop */
+/* Hover EXIF */
 async function showHoverInfo(file) {
   if (window.innerWidth <= 700) return;
   const exif = await loadExif(file);
@@ -410,15 +411,15 @@ function positionHoverPanel(imgEl) {
   const rect = imgEl.getBoundingClientRect();
   const w = hoverInfo.offsetWidth + 20;
 
-  if (rect.right + w > window.innerWidth)
-    hoverInfo.style.left = (rect.left - w) + "px";
-  else
-    hoverInfo.style.left = (rect.right + 20) + "px";
+  hoverInfo.style.left =
+    rect.right + w > window.innerWidth
+    ? (rect.left - w) + "px"
+    : (rect.right + 20) + "px";
 
   hoverInfo.style.top = rect.top + "px";
 }
 
-/* MODAL */
+/* ---- Modal ---- */
 async function openModal(i) {
   currentIndex = i;
   const file = imageList[i].file;
@@ -426,17 +427,15 @@ async function openModal(i) {
   modal.style.display = "flex";
   modalImg.style.opacity = 0;
 
-  modalImg.src = file; /* Full resolution */
+  modalImg.src = file; // FULL RES
 
   const exif = await loadExif(file);
 
-  /* Desktop EXIF */
   if (window.innerWidth > 700) {
     document.getElementById("exifContent").innerHTML = exifHtml(exif);
     document.getElementById("captionText").innerText = captionFrom(file, exif);
   }
 
-  /* Mobile drawer */
   if (window.innerWidth <= 700) {
     drawerContent.innerHTML =
       exifHtml(exif) +
@@ -447,27 +446,27 @@ async function openModal(i) {
 
   resetZoomPan();
 
-  closeDrawer(); /* start closed */
+  closeDrawer();
   drawerY = drawerClosedY;
   drawer.style.bottom = drawerClosedY + "px";
 
   setTimeout(()=> modalImg.style.opacity=1, 60);
 }
 
-/* Close modal on outside click */
+/* Close modal */
 modal.onclick = e => { if (e.target === modal) modal.style.display="none"; };
 
-/* Drawer physics */
+/* ---- Drawer Physics ---- */
 let draggingDrawer = false;
 
-drawer.addEventListener("touchstart", (e) => {
+drawer.addEventListener("touchstart", e => {
   draggingDrawer = true;
   drawerLastY = e.touches[0].clientY;
   drawerLastMoveTime = Date.now();
   drawerVelocity = 0;
 });
 
-drawer.addEventListener("touchmove", (e) => {
+drawer.addEventListener("touchmove", e => {
   if (!draggingDrawer) return;
   const y = e.touches[0].clientY;
   const dy = y - drawerLastY;
@@ -533,19 +532,21 @@ function animateDrawer() {
   requestAnimationFrame(step);
 }
 
-/* Tap handle */
-drawerHandle.onclick = () => {
-  if (drawerOpen) {
-    drawerOpen = false;
-    drawerY = drawerClosedY;
-  } else {
-    drawerOpen = true;
-    drawerY = drawerOpenY;
-  }
-  drawer.style.bottom = drawerY + "px";
-};
+function closeDrawer() {
+  drawerOpen = false;
+  drawerY = drawerClosedY;
+  drawer.style.bottom = drawerClosedY + "px";
+}
 
-/* Navigation */
+function openDrawer() {
+  drawerOpen = true;
+  drawerY = drawerOpenY;
+  drawer.style.bottom = drawerOpenY + "px";
+}
+
+drawerHandle.onclick = () => drawerOpen ? closeDrawer() : openDrawer();
+
+/* ---- Navigation ---- */
 document.onkeydown = e => {
   if (modal.style.display !== "flex") return;
   if (e.key === "Escape") modal.style.display="none";
@@ -556,7 +557,7 @@ document.onkeydown = e => {
 function openNext(){ if (currentIndex < imageList.length-1) openModal(currentIndex+1); }
 function openPrev(){ if (currentIndex > 0) openModal(currentIndex-1); }
 
-/* DESKTOP ZOOM & PAN */
+/* ---- Zoom & Pan ---- */
 modalImg.onwheel = e => {
   e.preventDefault();
   zoom = Math.max(1, zoom + (e.deltaY < 0 ? 0.15 : -0.15));
@@ -581,7 +582,7 @@ modalImg.onmousedown = e => {
   document.addEventListener("mouseup", stop);
 };
 
-/* PINCH ZOOM */
+/* Pinch zoom */
 modalImg.addEventListener("touchmove", function(e){
   if (e.touches.length === 2) {
     e.preventDefault();
@@ -598,18 +599,18 @@ modalImg.addEventListener("touchmove", function(e){
 },{passive:false});
 modalImg.addEventListener("touchend",()=> lastTouchDistance=0);
 
-/* DOUBLE TAP ZOOM */
-modalImg.addEventListener("touchend", function(e){
+/* Double-tap zoom */
+modalImg.addEventListener("touchend", e => {
   const now = Date.now();
   if (now - doubleTapTime < 280) {
     zoom = zoom === 1 ? 2 : 1;
-    panX=0;panY=0;
+    panX=0; panY=0;
     updateZoomPan();
   }
   doubleTapTime = now;
 });
 
-/* SWIPE NEXT/PREV */
+/* Swipe navigation */
 let touchStartX=0;
 modalImg.addEventListener("touchstart", e => touchStartX = e.touches[0].clientX);
 modalImg.addEventListener("touchend", e => {
@@ -618,7 +619,7 @@ modalImg.addEventListener("touchend", e => {
   if (touchStartX - end > 60) openNext();
 });
 
-/* ZOOM + PAN */
+/* Zoom updates */
 function resetZoomPan(){
   zoom=1;panX=0;panY=0;
   updateZoomPan();
@@ -629,6 +630,7 @@ function updateZoomPan(){
   zoomLevelDisplay.style.display = zoom === 1 ? "none" : "block";
 }
 
+/* Initialize */
 init();
 </script>
 
