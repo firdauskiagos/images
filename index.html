@@ -276,7 +276,7 @@ async function scanGitHub(path=""){
 function buildCategories(){
   const cats=[...new Set(imageList.map(i=>i.category))];
   const allLi=document.createElement("li");
-  allLi.textContent="All Images";
+  allLi.textContent="all images";
   allLi.onclick=()=>filterCategory("all");
   document.getElementById("categories").appendChild(allLi);
   
