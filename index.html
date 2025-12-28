@@ -275,11 +275,18 @@ async function scanGitHub(path=""){
 ---------------------------- */
 function buildCategories(){
   const cats=[...new Set(imageList.map(i=>i.category))];
+  const allLi=document.createElement("li");
+  allLi.textContent="All Images";
+  allLi.onclick=()=>filterCategory("all");
+  document.getElementById("categories").appendChild(allLi);
+  
   cats.forEach(cat=>{
-    const li=document.createElement("li");
-    li.textContent=(cat==="all"?"All Images":cat);
-    li.onclick=()=>filterCategory(cat);
-    document.getElementById("categories").appendChild(li);
+    if(cat!=="all"){
+      const li=document.createElement("li");
+      li.textContent=cat;
+      li.onclick=()=>filterCategory(cat);
+      document.getElementById("categories").appendChild(li);
+    }
   });
 }
 
