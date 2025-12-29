@@ -239,6 +239,19 @@ let suppressSwipe=false;
 /* Max desktop + mobile zoom */
 const MAX_ZOOM = 8;
 
+let currentImage=null;
+let currentImageArray=[]
+
+let exifCache = {}
+
+let saved = localStorage.getItem("imageList");
+if (saved) {
+  imageList = JSON.parse(saved);
+}else{
+  await scanGitHub();
+  localStorage.setItem("imageList", JSON.stringify(imageList));
+}
+
 /* ---------------------------
    Load captions
 ---------------------------- */
@@ -291,6 +304,7 @@ function buildCategories(){
 }
 
 function filterCategory(cat){
+  currentImageArray = imgs;
   gallery.innerHTML="";
   const imgs=(cat==="all"?imageList:imageList.filter(i=>i.category===cat));
   imgs.forEach((img,i)=>buildItem(img,i));
@@ -319,7 +333,7 @@ function buildItem(imgData,idx){
     item.onmouseleave=()=>hoverInfo.style.opacity=0;
   }
 
-  item.onclick=()=>openModal(idx);
+  item.onclick=()=>openModal(imgData);
 
   item.appendChild(img);
   gallery.appendChild(item);
@@ -330,7 +344,9 @@ function buildItem(imgData,idx){
 ---------------------------- */
 async function loadExif(file){
   const buf=await fetch(file).then(r=>r.arrayBuffer());
-  return ExifReader.load(buf);
+  const ex = ExifReader.load(buf);
+  exifCache[file] = ex;
+  return ex;
 }
 
 function exifHtml(ex){
@@ -363,11 +379,9 @@ function positionHoverPanel(img){
    Modal
 ---------------------------- */
 async function openModal(i){
-  currentIndex=i;
-
-  const {file,name}=imageList[i];
-  modal.style.display="flex";
+  const {file,name}=image;
   modalImg.src=file;
+  modal.style.display="flex";
 
   scale=1;
   offsetX=0;
@@ -407,8 +421,8 @@ document.addEventListener("keydown",e=>{
 /* Arrow keys */
 document.addEventListener("keydown",e=>{
   if(modal.style.display!=="flex") return;
-  if(e.key==="ArrowRight" && currentIndex<imageList.length-1) openModal(currentIndex+1);
-  if(e.key==="ArrowLeft"  && currentIndex>0) openModal(currentIndex-1);
+  if(e.key==="ArrowRight" && currentImageArray[currentImageIndex]<imageList.length-1) openModal(currentImageArray[currentImageIndex+1]);
+  if(e.key==="ArrowLeft"  && currentImageArray[currentImageIndex]>0) openModal(currentImageArray[currentImageIndex-1]);
 });
 
 /* ---------------------------
