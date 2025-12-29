@@ -214,17 +214,11 @@ const exifContent=document.getElementById("exifContent");
 const captionText=document.getElementById("captionText");
 const metaPanel=document.getElementById("metaPanel");
 
-/* Global State */
 let imageList=[];
 let captions={};
+let currentIndex=0;
 
-let currentArray=[];          // The currently displayed (filtered) images
-let currentArrayIndex=0;      // Position within filtered array
-let currentImage=null;
-
-let exifCache={};             // EXIF memoization
-
-/* Zoom state */
+/* Zoom & pan state */
 let scale=1;
 let offsetX=0;
 let offsetY=0;
@@ -232,15 +226,31 @@ let panStartX=0;
 let panStartY=0;
 let panning=false;
 
+/* Mobile pinch state */
 let isPinching=false;
 let lastDist=0;
 let pinchStartScale=1;
 
+/* Swipe for drawer */
 let swipeStartY=0;
 let drawerOpen=false;
 let suppressSwipe=false;
 
-const MAX_ZOOM=8;
+/* Max desktop + mobile zoom */
+const MAX_ZOOM = 8;
+
+let currentImage=null;
+let currentImageArray=[]
+
+let exifCache = {}
+
+let saved = localStorage.getItem("imageList");
+if (saved) {
+  imageList = JSON.parse(saved);
+}else{
+  await scanGitHub();
+  localStorage.setItem("imageList", JSON.stringify(imageList));
+}
 
 /* ---------------------------
    Load captions
@@ -258,7 +268,7 @@ function optimize(url){
 }
 
 /* ---------------------------
-   GitHub loader + caching
+   GitHub loader
 ---------------------------- */
 async function scanGitHub(path=""){
   const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}`;
@@ -294,21 +304,17 @@ function buildCategories(){
 }
 
 function filterCategory(cat){
+  currentImageArray = imgs;
   gallery.innerHTML="";
-
-  currentArray = (
-    cat==="all" ? imageList : imageList.filter(i=>i.category===cat)
-  );
-
-  currentArray.forEach((img,i)=>buildItem(img,i));
+  const imgs=(cat==="all"?imageList:imageList.filter(i=>i.category===cat));
+  imgs.forEach((img,i)=>buildItem(img,i));
 }
 
 function buildGallery(){
-  currentArray = imageList;
   imageList.forEach((img,i)=>buildItem(img,i));
 }
 
-function buildItem(imgData, idx){
+function buildItem(imgData,idx){
   const item=document.createElement("div");
   item.className="item";
 
@@ -327,7 +333,7 @@ function buildItem(imgData, idx){
     item.onmouseleave=()=>hoverInfo.style.opacity=0;
   }
 
-  item.onclick=()=>openModal(imgData, idx);
+  item.onclick=()=>openModal(imgData);
 
   item.appendChild(img);
   gallery.appendChild(item);
@@ -337,12 +343,9 @@ function buildItem(imgData, idx){
    EXIF utilities
 ---------------------------- */
 async function loadExif(file){
-  if(exifCache[file]) return exifCache[file];
-
   const buf=await fetch(file).then(r=>r.arrayBuffer());
-  const ex=ExifReader.load(buf);
-
-  exifCache[file]=ex;
+  const ex = ExifReader.load(buf);
+  exifCache[file] = ex;
   return ex;
 }
 
@@ -375,37 +378,30 @@ function positionHoverPanel(img){
 /* ---------------------------
    Modal
 ---------------------------- */
-async function openModal(imgObj, idx){
-  currentImage=imgObj;
-  currentArrayIndex=idx;
-
+async function openModal(i){
+  const {file,name}=image;
+  modalImg.src=file;
   modal.style.display="flex";
-  modalImg.src=imgObj.file;
 
   scale=1;
   offsetX=0;
   offsetY=0;
   applyTransform();
 
-  let ex;
-  if(exifCache[imgObj.file]){
-    ex=exifCache[imgObj.file];
-  } else {
-    ex=await loadExif(imgObj.file);
-  }
-
-  const cap=getCaption(imgObj.file,imgObj.name,ex);
+  const ex=await loadExif(file);
+  const cap=getCaption(file,name,ex);
 
   if(window.innerWidth>700){
     exifContent.innerHTML=exifHtml(ex);
     captionText.textContent=cap;
   } else {
-    drawerContent.innerHTML=exifHtml(ex)+`<div style="margin-top:12px;opacity:.75;">${cap}</div>`;
+    drawerContent.innerHTML=exifHtml(ex)+
+      `<div style="margin-top:12px;opacity:.75;">${cap}</div>`;
   }
 
   hoverInfo.style.opacity=0;
 
-  document.getElementById("openFull").onclick=()=>window.open(imgObj.file,"_blank");
+  document.getElementById("openFull").onclick=()=>window.open(file,"_blank");
 }
 
 function closeModal(){
@@ -417,23 +413,16 @@ modal.addEventListener("click",e=>{
   if(e.target===modal) closeModal();
 });
 
+/* ESC */
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape") closeModal();
 });
 
-/* Arrow navigation in filtered array */
+/* Arrow keys */
 document.addEventListener("keydown",e=>{
   if(modal.style.display!=="flex") return;
-
-  if(e.key==="ArrowRight" && currentArrayIndex<currentArray.length-1){
-    const next=currentArrayIndex+1;
-    openModal(currentArray[next], next);
-  }
-
-  if(e.key==="ArrowLeft" && currentArrayIndex>0){
-    const prev=currentArrayIndex-1;
-    openModal(currentArray[prev], prev);
-  }
+  if(e.key==="ArrowRight" && currentImageArray[currentImageIndex]<imageList.length-1) openModal(currentImageArray[currentImageIndex+1]);
+  if(e.key==="ArrowLeft"  && currentImageArray[currentImageIndex]>0) openModal(currentImageArray[currentImageIndex-1]);
 });
 
 /* ---------------------------
@@ -490,6 +479,7 @@ modalImg.addEventListener("touchend",e=>{
   if(isPinching && e.touches.length<2){
     isPinching=false;
 
+    /* Prevent pinch-out from closing */
     suppressSwipe=true;
     setTimeout(()=>suppressSwipe=false,80);
 
@@ -537,7 +527,7 @@ function closeDrawer(){
 }
 
 /* ---------------------------
-   DESKTOP PAN
+   DESKTOP PAN (mouse drag)
 ---------------------------- */
 modalImg.addEventListener("mousedown",e=>{
   if(window.innerWidth<=700) return;
@@ -563,7 +553,7 @@ document.addEventListener("mousemove",e=>{
 document.addEventListener("mouseup",()=>{ panning=false; });
 
 /* ---------------------------
-   DESKTOP ZOOM + TRACKPAD
+   DESKTOP ZOOM + TRACKPAD PINCH + TRACKPAD PAN
 ---------------------------- */
 modalImg.addEventListener("wheel", e => {
   if (window.innerWidth <= 700) return;
@@ -572,6 +562,7 @@ modalImg.addEventListener("wheel", e => {
   const isTrackpadGesture = e.ctrlKey === true; 
   const isTrackpadScroll = Math.abs(e.deltaX) > 0 || Math.abs(e.deltaY) < 40;
 
+  /* Trackpad pinch zoom */
   if (isTrackpadGesture) {
     scale -= e.deltaY * 0.02;  
     scale = Math.max(1, Math.min(MAX_ZOOM, scale));
@@ -581,6 +572,7 @@ modalImg.addEventListener("wheel", e => {
     return;
   }
 
+  /* Trackpad pan */
   if (scale > 1 && isTrackpadScroll && !isTrackpadGesture) {
     offsetX -= e.deltaX;
     offsetY -= e.deltaY;
@@ -589,6 +581,7 @@ modalImg.addEventListener("wheel", e => {
     return;
   }
 
+  /* Mouse wheel zoom */
   if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
     scale += (e.deltaY < 0 ? 0.06 : -0.06);
     scale = Math.min(MAX_ZOOM, scale);
@@ -615,6 +608,7 @@ function applySoftBounds(){
   offsetY = Math.max(-maxY*1.2, Math.min(maxY*1.2, offsetY));
 }
 
+/* Hide EXIF when zoomed */
 function updateDesktopExifVisibility(){
   if(window.innerWidth <= 700) return;
   if(scale>1){
@@ -631,15 +625,7 @@ function updateDesktopExifVisibility(){
 ---------------------------- */
 (async()=>{
   await loadCaptions();
-
-  const saved = localStorage.getItem("imageList");
-  if(saved){
-    imageList = JSON.parse(saved);
-  } else {
-    await scanGitHub();
-    localStorage.setItem("imageList", JSON.stringify(imageList));
-  }
-
+  await scanGitHub();
   buildCategories();
   buildGallery();
 })();
