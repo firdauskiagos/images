@@ -254,14 +254,15 @@ async function loadCaptions(){
    Optimize
 ---------------------------- */
 function optimize(url){
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=900&q=75&output=webp`;
+  // Vercel automatically handles WebP/AVIF formats based on browser support
+  return `/_vercel/image?url=${encodeURIComponent(url)}&w=900&q=75`;
 }
 
 /* ---------------------------
    GitHub loader + caching
 ---------------------------- */
 async function scanGitHub(path=""){
-  const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}`;
+  const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}?t=${Date.now()}`;
   const res=await fetch(api);
   const files=await res.json();
 
@@ -625,20 +626,14 @@ function updateDesktopExifVisibility(){
     metaPanel.style.pointerEvents="auto";
   }
 }
-
 /* ---------------------------
    INIT
 ---------------------------- */
 (async()=>{
   await loadCaptions();
-
-  const saved = localStorage.getItem("imageList");
-  if(saved){
-    imageList = JSON.parse(saved);
-  } else {
-    await scanGitHub();
-    localStorage.setItem("imageList", JSON.stringify(imageList));
-  }
+  
+  // Removed localStorage caching to force fresh fetch
+  await scanGitHub(); 
 
   buildCategories();
   buildGallery();
