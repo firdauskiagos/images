@@ -629,11 +629,30 @@ function updateDesktopExifVisibility(){
 /* ---------------------------
    INIT
 ---------------------------- */
-(async()=>{
+/* ---------------------------
+   INIT (with 2-hour cache)
+---------------------------- */
+(async () => {
   await loadCaptions();
-  
-  // Removed localStorage caching to force fresh fetch
-  await scanGitHub(); 
+
+  const CACHE_KEY = "imageList";
+  const TIMESTAMP_KEY = "imageList_timestamp";
+  const TWO_HOURS = 2 * 60 * 60 * 1000; // Time in milliseconds
+
+  const saved = localStorage.getItem(CACHE_KEY);
+  const savedTime = localStorage.getItem(TIMESTAMP_KEY);
+  const now = Date.now();
+
+  // Check if cache exists AND is less than 2 hours old
+  if (saved && savedTime && (now - savedTime < TWO_HOURS)) {
+    imageList = JSON.parse(saved);
+  } else {
+    // Clear and fetch fresh data
+    imageList = []; 
+    await scanGitHub(); 
+    localStorage.setItem(CACHE_KEY, JSON.stringify(imageList));
+    localStorage.setItem(TIMESTAMP_KEY, now.toString());
+  }
 
   buildCategories();
   buildGallery();

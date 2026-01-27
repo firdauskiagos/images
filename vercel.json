@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "images": {
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "raw.githubusercontent.com",
+        "pathname": "/**"
+      }
+    ]
+  }
+}
