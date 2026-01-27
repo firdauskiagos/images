@@ -253,9 +253,10 @@ async function loadCaptions(){
 /* ---------------------------
    Optimize
 ---------------------------- */
-function optimize(url){
-  // Vercel automatically handles WebP/AVIF formats based on browser support
-  return `/_vercel/image?url=${encodeURIComponent(url)}&w=900&q=75`;
+function optimize(url) {
+  // Points to Vercel's optimization endpoint
+  // Ensure the width (w=1080) is present in your vercel.json sizes array
+  return `/_vercel/image?url=${encodeURIComponent(url)}&w=1080&q=75`;
 }
 
 /* ---------------------------
