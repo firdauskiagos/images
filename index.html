@@ -291,16 +291,15 @@ function optimize(url) {
 function buildCategories(){
   const cats=[...new Set(imageList.map(i=>i.category))];
 
-  const latestLi=document.createElement("li");
-  latestLi.textContent="latest";
-  latestLi.onclick=()=>filterCategory("latest");
-  document.getElementById("categories").appendChild(latestLi);
-
-  
   const allLi=document.createElement("li");
   allLi.textContent="all images";
   allLi.onclick=()=>filterCategory("all");
   document.getElementById("categories").appendChild(allLi);
+
+  const latestLi=document.createElement("li");
+  latestLi.textContent="latest";
+  latestLi.onclick=()=>filterCategory("latest");
+  document.getElementById("categories").appendChild(latestLi);
   
   cats.forEach(cat=>{
     if(cat!=="all"){
