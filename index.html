@@ -262,24 +262,19 @@ function optimize(url) {
 /* ---------------------------
    GitHub loader + caching
 ---------------------------- */
-async function scanGitHub(path=""){
-  const api=`https://api.github.com/repos/firdauskiagos/images/contents/${path}?t=${Date.now()}`;
-  const res=await fetch(api);
-  const files=await res.json();
-
-  for(const f of files){
-    if(f.type==="file" && /\.(jpg|jpeg|png|webp)$/i.test(f.name)){
-      imageList.push({file:f.download_url,name:f.name,category:path||"all"});
-    }
-    if(f.type==="dir") await scanGitHub(f.path.replace("images/",""));
-  }
-}
 
 /* ---------------------------
    Build UI
 ---------------------------- */
 function buildCategories(){
   const cats=[...new Set(imageList.map(i=>i.category))];
+
+  const latestLi=document.createElement("li");
+  latestLi.textContent="latest";
+  latestLi.onclick=()=>filterCategory("latest");
+  document.getElementById("categories").appendChild(latestLi);
+
+  
   const allLi=document.createElement("li");
   allLi.textContent="all images";
   allLi.onclick=()=>filterCategory("all");
@@ -298,12 +293,18 @@ function buildCategories(){
 function filterCategory(cat){
   gallery.innerHTML="";
 
-  currentArray = (
-    cat==="all" ? imageList : imageList.filter(i=>i.category===cat)
-  );
+  if(cat==="latest"){
+    currentArray = imageList;
+  }
+  else{
+    currentArray = (
+      cat==="all" ? imageList : imageList.filter(i=>i.category===cat)
+    );
+  }
 
   currentArray.forEach((img,i)=>buildItem(img,i));
 }
+
 
 function buildGallery(){
   currentArray = imageList;
@@ -636,24 +637,8 @@ function updateDesktopExifVisibility(){
 (async () => {
   await loadCaptions();
 
-  const CACHE_KEY = "imageList";
-  const TIMESTAMP_KEY = "imageList_timestamp";
-  const TWO_HOURS = 2 * 60 * 60 * 1000; // Time in milliseconds
-
-  const saved = localStorage.getItem(CACHE_KEY);
-  const savedTime = localStorage.getItem(TIMESTAMP_KEY);
-  const now = Date.now();
-
-  // Check if cache exists AND is less than 2 hours old
-  if (saved && savedTime && (now - savedTime < TWO_HOURS)) {
-    imageList = JSON.parse(saved);
-  } else {
-    // Clear and fetch fresh data
-    imageList = []; 
-    await scanGitHub(); 
-    localStorage.setItem(CACHE_KEY, JSON.stringify(imageList));
-    localStorage.setItem(TIMESTAMP_KEY, now.toString());
-  }
+  imageList = await fetch("manifest.json?v=" + Date.now())
+  .then(r=>r.json());
 
   buildCategories();
   buildGallery();

@@ -1,0 +1,1 @@
+npm run manifest before every push
