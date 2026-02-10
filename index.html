@@ -380,12 +380,7 @@ function exifHtml(ex){
     ["⏱",ex.ExposureTime?.description],
     ["🎚",ex.ISOSpeedRatings?.description],
     ["📐",ex.FocalLength?.description],
-    ["📅",
-    ex.DateTimeOriginal?.description ||
-    ex.CreateDate?.description ||
-    ex.ModifyDate?.description
-    ],
-
+    ["📅",ex.DateTimeOriginal?.description || ex.CreateDate?.description || ex.ModifyDate?.description],
   ].filter(x=>x[1]).map(x=>
     `<div class="exif-line">${x[0]} ${x[1]}</div>`
   ).join("");
@@ -418,6 +413,10 @@ async function openModal(imgObj, idx){
   offsetX=0;
   offsetY=0;
   applyTransform();
+
+  metaPanel.style.opacity="1";
+  metaPanel.style.pointerEvents="auto";
+
 
   let ex;
   if(exifCache[imgObj.file]){
@@ -649,7 +648,7 @@ function applySoftBounds(){
 
 function updateDesktopExifVisibility(){
   if(window.innerWidth <= 700) return;
-  if(scale>1){
+  if(scale>1.1){
     metaPanel.style.opacity="0";
     metaPanel.style.pointerEvents="none";
   } else {
