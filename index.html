@@ -68,8 +68,11 @@
   @media(max-width:900px){ .gallery{ column-count:2; } }
   @media(max-width:700px){ .gallery{ column-count:1!important; } }
 
+  .gallery{
+  transition: all .25s ease;
+}
+
   .item {
-    break-inside:avoid;
     margin-bottom:16px;
     border-radius:12px;
     overflow:hidden;
@@ -173,6 +176,25 @@
     margin:0 auto 10px;
     border-radius:3px;
   }
+
+  .gallery.grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:16px;
+}
+
+@media(max-width:900px){
+  .gallery.grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:700px){
+  .gallery.grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 
@@ -294,9 +316,10 @@ function filterCategory(cat){
   gallery.innerHTML="";
 
   if(cat==="latest"){
-    currentArray = imageList;
-  }
-  else{
+    gallery.classList.add("grid");
+    currentArray = imageList; // already sorted
+  }else{
+    gallery.classList.remove("grid");
     currentArray = (
       cat==="all" ? imageList : imageList.filter(i=>i.category===cat)
     );
@@ -304,6 +327,7 @@ function filterCategory(cat){
 
   currentArray.forEach((img,i)=>buildItem(img,i));
 }
+
 
 
 function buildGallery(){
