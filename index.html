@@ -446,7 +446,10 @@
             item.onmouseleave = () => hoverInfo.style.opacity = 0;
         }
 
-        item.onclick = () => openModal(imgData, idx);
+        item.onclick = () => {
+            const realIdx = currentArray.findIndex(x => x.file === imgData.file);
+            openModal(imgData, idx);
+        }
 
         item.appendChild(img);
         gallery.appendChild(item);
@@ -495,7 +498,10 @@
     /* ---------------------------
        Modal
     ---------------------------- */
+    let modalRequestID = 0;
     async function openModal(imgObj, idx) {
+        const reqId = ++modalRequestID ? idx : imgObj.id;
+
         currentImage = imgObj;
         currentArrayIndex = idx;
 
@@ -518,7 +524,9 @@
             ex = await loadExif(imgObj.file);
         }
 
-        const cap = getCaption(imgObj.file, imgObj.name, ex);
+        if (reqId !== modalRequestID) {return;}
+
+        const cap = ex ? getCaption(imgObj.file, imgObj.name, ex) : imgObj.name;
 
         if (window.innerWidth > 700) {
             exifContent.innerHTML = exifHtml(ex);
@@ -565,6 +573,8 @@
     ---------------------------- */
     modalImg.addEventListener("touchstart", e => {
         suppressSwipe = false;
+
+        let lastTouchX=0, lastTouchY=0;
 
         if (e.touches.length === 2) {
             isPinching = true;
