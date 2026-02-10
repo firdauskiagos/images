@@ -379,7 +379,13 @@ function exifHtml(ex){
     ["🔆",ex.FNumber?.description],
     ["⏱",ex.ExposureTime?.description],
     ["🎚",ex.ISOSpeedRatings?.description],
-    ["📐",ex.FocalLength?.description]
+    ["📐",ex.FocalLength?.description],
+    ["📅",
+    ex.DateTimeOriginal?.description ||
+    ex.CreateDate?.description ||
+    ex.ModifyDate?.description
+    ],
+
   ].filter(x=>x[1]).map(x=>
     `<div class="exif-line">${x[0]} ${x[1]}</div>`
   ).join("");
@@ -406,7 +412,7 @@ async function openModal(imgObj, idx){
   currentArrayIndex=idx;
 
   modal.style.display="flex";
-  modalImg.src=imgObj.file;
+  modalImg.src=optimize(imgObj.file);
 
   scale=1;
   offsetX=0;
