@@ -476,7 +476,7 @@
             ["⏱", ex.ExposureTime?.description],
             ["🎚", ex.ISOSpeedRatings?.description],
             ["📐", ex.FocalLength?.description],
-            ["📅", ex.DateTimeOriginal?.description || ex.CreateDate?.description || ex.ModifyDate?.description],
+            ["📅", formatExifDate(ex)],
         ].filter(x => x[1]).map(x =>
             `<div class="exif-line">${x[0]} ${x[1]}</div>`
         ).join("");
@@ -751,6 +751,33 @@
 
         offsetX = Math.max(-maxX * 1.2, Math.min(maxX * 1.2, offsetX));
         offsetY = Math.max(-maxY * 1.2, Math.min(maxY * 1.2, offsetY));
+    }
+
+    function ordinal(n){
+        const s=["th", "st", "nd", "rd"], v=n%100;
+        return n + (s[(v-20)%10] || s[v] || s[0]);
+    }
+
+    function formatExifDate(ex){
+        const raw =
+            ex.DateTimeOriginal?.description ||
+            ex.DateTimeDigitized?.description ||
+            ex.DateTime?.description;
+        if (!raw) return null;
+
+        // EXIF usually: "YYYY:MM:DD HH:MM:SS"
+        const m = raw.match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+        if(!m) return raw;
+
+        const [,Y,Mo,D,H,Mi] = m;
+        const date = new Date(Number(Y), Number(Mo)-1, Number(D), Number(H), Number(Mi));
+
+        const day = ordinal(date.getDate());
+        const month = date.toLocaleString("en-GB", { month: "long" });
+        const year = date.getFullYear();
+        const time = `${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
+
+        return `${day} ${month} ${year} ${time}`;
     }
 
     function updateDesktopExifVisibility() {
