@@ -534,15 +534,20 @@
         metaPanel.style.pointerEvents = "auto";
 
 
-        let ex; 
-        try { 
-            ex = exifCache[imgObj.file] || await loadExif(imgObj.file); 
-            exifContent.innerHTML = exifHtml(ex); 
-        } catch (err) { 
-            exifContent.innerHTML = "<div>EXIF failed to load </div>"; 
-            console.error("Modal EXIF error", err, imgObj.file); } 
-        if (reqId !== modalRequestID) return; 
-        // Use name if present, otherwise fallback to filename, then "untitled" const cap = getCaption( imgObj.file, imgObj.name || fileNameFromUrl(imgObj.file) || "", ex );
+        let ex;
+        try {
+            const ex = exifCache[imgObj.file] || await loadExif(imgObj.file);
+            exifContent.innerHTML = exifHtml(ex);
+        } catch (err) {
+            exifContent.innerHTML = "<div>EXIF failed to load </div>"
+            console.error("Modal EXIF error", err, imgObj.file);
+        }
+
+        if (reqId !== modalRequestID) {
+            return;
+        }
+
+        const cap = ex ? getCaption(imgObj.file, imgObj.name, ex) : imgObj.name;
 
         if (window.innerWidth > 700) {
             exifContent.innerHTML = exifHtml(ex);
