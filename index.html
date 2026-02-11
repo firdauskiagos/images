@@ -483,8 +483,8 @@
     }
 
     function getCaption(file, name, ex) {
-        if (captions[name]) return captions[name];
-        if (ex["ImageDescription"]?.description) return ex["ImageDescription"].description;
+        if (captions && captions[name]) return captions[name];
+        if (ex?.ImageDescription?.description) return ex.ImageDescription.description;
         return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
     }
 
