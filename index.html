@@ -518,10 +518,12 @@
 
 
         let ex;
-        if (exifCache[imgObj.file]) {
-            ex = exifCache[imgObj.file];
-        } else {
-            ex = await loadExif(imgObj.file);
+        try {
+            const ex = exifCache[imgObj.file] || await loadExif(imgObj.file);
+            exifContent.innerHTML = exifHtml(ex);
+        } catch (err) {
+            exifContent.innerHTML = "<div>EXIF failed to load </div>"
+            console.error("Modal EXIF error", err, imgObj.file);
         }
 
         if (reqId !== modalRequestID) {return;}
