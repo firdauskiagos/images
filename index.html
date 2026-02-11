@@ -494,15 +494,10 @@
         }
     }
 
-    function getCaption(file, name, ex) {
-      if (!name) { // Add this check
+    function getCaption(file) {
         return fileNameFromUrl(file) || "untitled";
-      }
-
-      if (captions && captions[name]) return captions[name];
-      if (ex?.ImageDescription?.description) return ex.ImageDescription.description;
-      return name || fileNameFromUrl(file) || "untitled";
     }
+
 
 
     function positionHoverPanel(img) {
@@ -547,7 +542,7 @@
             return;
         }
 
-        const cap = ex ? getCaption(imgObj.file, imgObj.name, ex) : imgObj.name;
+        const cap = getCaption(imgObj.file);
 
         if (window.innerWidth > 700) {
             exifContent.innerHTML = exifHtml(ex);
