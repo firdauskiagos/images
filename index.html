@@ -486,7 +486,8 @@
 
     function fileNameFromUrl(url) {
         try {
-            const path = new(url).pathname;
+            // Second argument (origin) is needed if "url" is a relative URL
+            const path = new URL(url, window.location.origin).pathname;
             return decodeURIComponent(path.split("/").pop() || "");
         } catch {
             return (url.split("/").pop() || "");
@@ -528,18 +529,15 @@
         metaPanel.style.pointerEvents = "auto";
 
 
-        let ex;
-        try {
-            const ex = exifCache[imgObj.file] || await loadExif(imgObj.file);
-            exifContent.innerHTML = exifHtml(ex);
-        } catch (err) {
-            exifContent.innerHTML = "<div>EXIF failed to load </div>"
-            console.error("Modal EXIF error", err, imgObj.file);
-        }
-
-        if (reqId !== modalRequestID) {return;}
-
-        const cap = ex ? getCaption(imgObj.file, imgObj.name, ex) : imgObj.name;
+        let ex; 
+        try { 
+            ex = exifCache[imgObj.file] || await loadExif(imgObj.file); 
+            exifContent.innerHTML = exifHtml(ex); 
+        } catch (err) { 
+            exifContent.innerHTML = "<div>EXIF failed to load </div>"; 
+            console.error("Modal EXIF error", err, imgObj.file); } 
+        if (reqId !== modalRequestID) return; 
+        // Use name if present, otherwise fallback to filename, then "untitled" const cap = getCaption( imgObj.file, imgObj.name || fileNameFromUrl(imgObj.file) || "", ex );
 
         if (window.innerWidth > 700) {
             exifContent.innerHTML = exifHtml(ex);
