@@ -484,10 +484,19 @@
         ).join("");
     }
 
+    function fileNameFromUrl(url) {
+        try {
+            const path = new(url).pathname;
+            return decodeURIComponent(path.split("/").pop() || "");
+        } catch {
+            return (url.split("/").pop() || "");
+        }
+    }
+
     function getCaption(file, name, ex) {
         if (captions && captions[name]) return captions[name];
         if (ex?.ImageDescription?.description) return ex.ImageDescription.description;
-        return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+        return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ") || fileNameFromUrl(file) || "untitled";
     }
 
     function positionHoverPanel(img) {
